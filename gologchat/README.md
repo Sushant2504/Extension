@@ -1,71 +1,35 @@
-# gologchat README
+# GoLogChat VS Code Extension
 
-This is the README for your extension "gologchat". After writing up a brief description, we recommend including the following sections.
+Log AI prompts/responses from VS Code to the GoLogChat backend.
 
 ## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Command palette action: `GoLogChat: Log Prompt` (captures prompt + optional response, sends to backend).
+- Uses your configured Developer ID and Team ID for access control.
+- Respects `enableLogging` toggle.
 
 ## Requirements
+- Backend server running (default `http://localhost:8080`). Start it from `gologchat-backend` with `go run main.go`.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Settings
+All settings are under `GoLogChat`:
+- `gologchat.apiUrl` (`string`, default `http://localhost:8080`): Backend base URL.
+- `gologchat.developerId` (`string`): Your Developer ID.
+- `gologchat.teamId` (`string`): Your Team ID.
+- `gologchat.enableLogging` (`boolean`, default `true`): Master toggle.
+- `gologchat.isAdmin` (`boolean`, default `false`): Marks requests as admin (use only if allowed).
 
-## Extension Settings
+## Usage
+1. Configure settings (`Cmd+,` then search “GoLogChat”) for API URL, Developer ID, Team ID.
+2. Run `GoLogChat: Log Prompt` from the Command Palette.
+3. Enter the prompt, optionally the response, and submit. A success/error toast will appear.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Known Limitations (current build)
+- Manual entry only (no automatic capture yet).
+- Backend is in-memory; data resets on restart and has no authentication.
 
-For example:
+## Packaging / Publishing
+- Build: `npm run compile`
+- Package VSIX: `npx @vscode/vsce package`
+- Install local VSIX: `code --install-extension gologchat-0.0.2.vsix`
+- Publishing to Marketplace requires a real `publisher` value and Azure DevOps Personal Access Token configured for `vsce`.
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

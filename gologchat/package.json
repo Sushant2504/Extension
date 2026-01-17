@@ -1,23 +1,74 @@
 {
   "name": "gologchat",
   "displayName": "GoLogChat",
-  "description": "\"it is about keeping the history of the prompts and its effects of the on development project \" .",
-  "version": "0.0.1",
+  "description": "Log AI prompts and responses to a team backend for visibility.",
+  "version": "0.0.2",
+  "publisher": "your-publisher-id",
   "engines": {
     "vscode": "^1.106.1"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "ai",
+    "prompts",
+    "logging",
+    "team"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/gologchat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/gologchat/issues"
+  },
+  "homepage": "https://github.com/your-org/gologchat",
+  "license": "MIT",
+  "activationEvents": [
+    "onCommand:gologchat.helloWorld",
+    "onCommand:gologchat.logPrompt"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "gologchat.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "gologchat.logPrompt",
+        "title": "GoLogChat: Log Prompt"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "GoLogChat",
+      "properties": {
+        "gologchat.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "Backend API base URL (e.g. http://localhost:8080)"
+        },
+        "gologchat.developerId": {
+          "type": "string",
+          "description": "Your Developer ID used for logging prompts"
+        },
+        "gologchat.teamId": {
+          "type": "string",
+          "description": "Your Team ID used for access control"
+        },
+        "gologchat.enableLogging": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable prompt logging to GoLogChat backend"
+        },
+        "gologchat.isAdmin": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mark requests as admin for debugging (only set if authorized)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
