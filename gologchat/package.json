@@ -3,7 +3,7 @@
   "displayName": "GoLogChat",
   "description": "Log AI prompts and responses to a team backend for visibility.",
   "version": "0.0.2",
-  "publisher": "snadavad",
+  "publisher": "SushantNadavade",
   "engines": {
     "vscode": "^1.106.1"
   },
