@@ -3,7 +3,7 @@
   "displayName": "GoLogChat",
   "description": "Log AI prompts and responses to a team backend for visibility.",
   "version": "0.0.2",
-  "publisher": "your-publisher-id",
+  "publisher": "snadavad",
   "engines": {
     "vscode": "^1.106.1"
   },
@@ -26,21 +26,87 @@
   "homepage": "https://github.com/your-org/gologchat",
   "license": "MIT",
   "activationEvents": [
-    "onCommand:gologchat.helloWorld",
-    "onCommand:gologchat.logPrompt"
+    "onView:gologchat.promptHistory"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gologchat-sidebar",
+          "title": "GoLogChat",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": {
+      "gologchat-sidebar": [
+        {
+          "id": "gologchat.promptHistory",
+          "name": "Prompt History",
+          "icon": "$(history)",
+          "contextualTitle": "GoLogChat"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "gologchat.helloWorld",
-        "title": "Hello World"
+        "command": "gologchat.logPrompt",
+        "title": "GoLogChat: Log Prompt",
+        "icon": "$(add)"
       },
       {
-        "command": "gologchat.logPrompt",
-        "title": "GoLogChat: Log Prompt"
+        "command": "gologchat.refreshPrompts",
+        "title": "GoLogChat: Refresh Prompts",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gologchat.filterPrompts",
+        "title": "GoLogChat: Filter Prompts",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "gologchat.clearFilter",
+        "title": "GoLogChat: Clear Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "gologchat.viewPromptDetail",
+        "title": "GoLogChat: View Prompt Details",
+        "icon": "$(open-preview)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "gologchat.logPrompt",
+          "when": "view == gologchat.promptHistory",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gologchat.filterPrompts",
+          "when": "view == gologchat.promptHistory",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gologchat.clearFilter",
+          "when": "view == gologchat.promptHistory && gologchat.filterActive",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gologchat.refreshPrompts",
+          "when": "view == gologchat.promptHistory",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gologchat.viewPromptDetail",
+          "when": "view == gologchat.promptHistory && viewItem == prompt",
+          "group": "inline"
+        }
+      ]
+    },
     "configuration": {
       "title": "GoLogChat",
       "properties": {
