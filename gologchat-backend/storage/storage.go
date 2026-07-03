@@ -2,22 +2,23 @@ package storage
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"gologchat-backend/models"
 )
 
-// Storage interface for prompt persistence
 type Storage interface {
 	SavePrompt(prompt *models.Prompt) error
 	GetPrompts(teamID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error)
 	GetPromptsByTeam(teamID string) ([]models.Prompt, error)
+	GetAllPrompts() ([]models.Prompt, error)
 	GetUser(developerID string) (*models.User, error)
 	SaveUser(user *models.User) error
 }
 
-// InMemoryStorage is a simple in-memory storage (can be replaced with database)
 type InMemoryStorage struct {
+	mu      sync.RWMutex
 	prompts map[string]*models.Prompt
 	users   map[string]*models.User
 }
@@ -30,39 +31,39 @@ func NewInMemoryStorage() *InMemoryStorage {
 }
 
 func (s *InMemoryStorage) SavePrompt(prompt *models.Prompt) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.prompts[prompt.ID] = prompt
 	return nil
 }
 
 func (s *InMemoryStorage) GetPrompts(teamID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	var results []models.Prompt
-	
 	for _, prompt := range s.prompts {
-		// Access control: Admin sees all, others only see their team's prompts
 		if !isAdmin && prompt.TeamID != teamID {
 			continue
 		}
-		
-		// Filter by developer ID if specified
 		if developerID != "" && prompt.DeveloperID != developerID {
 			continue
 		}
-		
-		// Filter by date range if specified
 		if startDate != nil && prompt.Timestamp.Before(*startDate) {
 			continue
 		}
 		if endDate != nil && prompt.Timestamp.After(*endDate) {
 			continue
 		}
-		
 		results = append(results, *prompt)
 	}
-	
 	return results, nil
 }
 
 func (s *InMemoryStorage) GetPromptsByTeam(teamID string) ([]models.Prompt, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	var results []models.Prompt
 	for _, prompt := range s.prompts {
 		if prompt.TeamID == teamID {
@@ -72,7 +73,21 @@ func (s *InMemoryStorage) GetPromptsByTeam(teamID string) ([]models.Prompt, erro
 	return results, nil
 }
 
+func (s *InMemoryStorage) GetAllPrompts() ([]models.Prompt, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var results []models.Prompt
+	for _, prompt := range s.prompts {
+		results = append(results, *prompt)
+	}
+	return results, nil
+}
+
 func (s *InMemoryStorage) GetUser(developerID string) (*models.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	user, exists := s.users[developerID]
 	if !exists {
 		return nil, fmt.Errorf("user not found")
@@ -81,7 +96,8 @@ func (s *InMemoryStorage) GetUser(developerID string) (*models.User, error) {
 }
 
 func (s *InMemoryStorage) SaveUser(user *models.User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.users[user.DeveloperID] = user
 	return nil
 }
-

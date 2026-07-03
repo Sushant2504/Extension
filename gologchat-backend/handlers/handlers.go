@@ -139,7 +139,13 @@ func (api *API) GetTeamPatterns(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompts, err := api.storage.GetPromptsByTeam(teamID)
+	var prompts []models.Prompt
+	var err error
+	if isAdmin {
+		prompts, err = api.storage.GetAllPrompts()
+	} else {
+		prompts, err = api.storage.GetPromptsByTeam(teamID)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
