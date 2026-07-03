@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"gologchat-backend/models"
+	"devtrace-ai-backend/models"
 )
 
 type Storage interface {

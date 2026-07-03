@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"gologchat-backend/models"
+	"devtrace-ai-backend/models"
 )
 
 var patternKeywords = map[string][]string{

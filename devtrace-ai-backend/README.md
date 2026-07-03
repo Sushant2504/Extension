@@ -1,6 +1,6 @@
-# GoLogChat Backend
+# DevTrace AI Backend
 
-Go backend server for the Team Prompt Tracker VS Code extension.
+Go backend server for the DevTrace AI VS Code extension.
 
 ## Features
 
@@ -20,8 +20,8 @@ go mod tidy
 go run main.go
 
 # Or build and run
-go build -o gologchat-backend
-./gologchat-backend
+go build -o devtrace-ai-backend
+./devtrace-ai-backend
 ```
 
 The server will start on port 8080 by default. Set the `PORT` environment variable to change it.
@@ -42,4 +42,3 @@ The server will start on port 8080 by default. Set the `PORT` environment variab
 ## Configuration
 
 The extension will connect to this backend. Make sure the API URL in the extension settings points to this server.
-

@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: gologchat-backend
+    name: devtrace-ai-backend
     runtime: go
-    rootDir: gologchat-backend
+    rootDir: devtrace-ai-backend
     buildCommand: go build -o server .
     startCommand: ./server
     plan: free

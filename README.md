@@ -1,12 +1,12 @@
-# GoLogChat - Team Prompt Tracker
+# DevTrace AI - Team Prompt Tracker
 
 ## 📋 Project Overview
 
-**GoLogChat** is a VS Code extension designed to track and analyze AI prompts used during development. It helps teams understand how AI assistance (like Cursor AI) impacts their development workflow by logging prompts, responses, and their effects on the codebase.
+**DevTrace AI** is a VS Code extension designed to track and analyze AI prompts used during development. It helps teams understand how AI assistance (like Cursor AI) impacts their development workflow by logging prompts, responses, and their effects on the codebase.
 
-### What is GoLogChat?
+### What is DevTrace AI?
 
-GoLogChat is a **team collaboration tool** that:
+DevTrace AI is a **team collaboration tool** that:
 - **Captures** all AI prompts and responses from your development sessions
 - **Tracks** which developers are using AI assistance and how frequently
 - **Analyzes** the impact of AI prompts on your codebase
@@ -78,13 +78,13 @@ The extension addresses the need for:
 ### Components
 
 ```
-GoLogChat/
-├── gologchat/              # VS Code Extension (TypeScript)
+DevTrace AI/
+├── devtrace-ai/              # VS Code Extension (TypeScript)
 │   ├── src/
 │   │   └── extension.ts    # Extension entry point
 │   └── package.json        # Extension manifest
 │
-└── gologchat-backend/      # Go Backend Server
+└── devtrace-ai-backend/      # Go Backend Server
     ├── main.go             # Server entry point
     ├── models/             # Data models
     │   └── models.go       # Prompt, User models
@@ -151,7 +151,7 @@ GoLogChat/
 
 1. **Navigate to backend directory**
    ```bash
-   cd gologchat-backend
+   cd devtrace-ai-backend
    ```
 
 2. **Install dependencies**
@@ -166,8 +166,8 @@ GoLogChat/
    
    Or build and run:
    ```bash
-   go build -o gologchat-backend
-   ./gologchat-backend
+   go build -o devtrace-ai-backend
+   ./devtrace-ai-backend
    ```
 
 4. **Configure port** (optional)
@@ -182,7 +182,7 @@ The server will start on `http://localhost:8080` by default.
 
 1. **Navigate to extension directory**
    ```bash
-   cd gologchat
+   cd devtrace-ai
    ```
 
 2. **Install dependencies**
@@ -197,7 +197,7 @@ The server will start on `http://localhost:8080` by default.
 
 4. **Run in development mode**
    - Press `F5` in VS Code to launch Extension Development Host
-   - Or use: `code --extensionDevelopmentPath=./gologchat`
+   - Or use: `code --extensionDevelopmentPath=./devtrace-ai`
 
 5. **Configure extension settings**
    - Set the backend API URL in VS Code settings
@@ -377,7 +377,7 @@ GET /api/users/{id}
 
 1. **Watch mode for development**
    ```bash
-   cd gologchat
+   cd devtrace-ai
    npm run watch
    ```
 
@@ -418,20 +418,20 @@ Add to `package.json` `contributes.configuration`:
 
 ```json
 {
-  "gologchat.apiUrl": {
+  "devtraceai.apiUrl": {
     "type": "string",
     "default": "http://localhost:8080",
     "description": "Backend API URL"
   },
-  "gologchat.developerId": {
+  "devtraceai.developerId": {
     "type": "string",
     "description": "Your Developer ID"
   },
-  "gologchat.teamId": {
+  "devtraceai.teamId": {
     "type": "string",
     "description": "Your Team ID"
   },
-  "gologchat.enableLogging": {
+  "devtraceai.enableLogging": {
     "type": "boolean",
     "default": true,
     "description": "Enable prompt logging"

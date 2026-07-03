@@ -8,8 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/google/uuid"
 
-	"gologchat-backend/models"
-	"gologchat-backend/storage"
+	"devtrace-ai-backend/models"
+	"devtrace-ai-backend/storage"
 )
 
 // API handlers

@@ -7,9 +7,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"gologchat-backend/handlers"
-	"gologchat-backend/middleware"
-	"gologchat-backend/storage"
+	"devtrace-ai-backend/handlers"
+	"devtrace-ai-backend/middleware"
+	"devtrace-ai-backend/storage"
 )
 
 func main() {
