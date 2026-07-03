@@ -28,6 +28,13 @@ func main() {
 	router.HandleFunc("/api/users", api.SaveUser).Methods("POST")
 	router.HandleFunc("/api/users/{id}", api.GetUser).Methods("GET")
 	router.HandleFunc("/api/org/patterns", api.GetOrgPatterns).Methods("GET")
+	router.HandleFunc("/api/org/analytics", api.GetOrgAnalytics).Methods("GET")
+	router.HandleFunc("/api/prompts/{id}/outcome", api.UpdatePromptOutcome).Methods("PATCH")
+	router.HandleFunc("/api/teams", api.CreateTeam).Methods("POST")
+	router.HandleFunc("/api/teams", api.ListTeams).Methods("GET")
+	router.HandleFunc("/api/teams/{id}", api.GetTeam).Methods("GET")
+	router.HandleFunc("/api/teams/{id}/members", api.UpdateTeamMembers).Methods("PUT")
+	router.HandleFunc("/api/teams/{id}/analytics", api.GetTeamAnalytics).Methods("GET")
 
 	port := os.Getenv("PORT")
 	if port == "" {
