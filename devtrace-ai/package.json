@@ -124,6 +124,21 @@
         "command": "devtraceai.openSettings",
         "title": "DevTrace AI: Open Settings",
         "icon": "$(gear)"
+      },
+      {
+        "command": "devtraceai.quickCapture",
+        "title": "DevTrace AI: Quick Capture from Clipboard",
+        "icon": "$(clippy)"
+      },
+      {
+        "command": "devtraceai.manageTeams",
+        "title": "DevTrace AI: Manage Teams",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "devtraceai.showTeamDashboard",
+        "title": "DevTrace AI: Team Dashboard",
+        "icon": "$(graph)"
       }
     ],
     "menus": {
@@ -197,9 +212,32 @@
           "type": "boolean",
           "default": false,
           "description": "Mark requests as admin for debugging (only set if authorized)"
+        },
+        "devtraceai.defaultProvider": {
+          "type": "string",
+          "enum": ["Cursor", "Claude Code", "GitHub Copilot", "Aider", "Continue", "Other"],
+          "description": "Default AI provider pre-selected when logging prompts"
+        },
+        "devtraceai.defaultModel": {
+          "type": "string",
+          "enum": ["GPT-4o", "GPT-4", "GPT-4o mini", "Claude Sonnet", "Claude Opus", "Claude Haiku", "Gemini Pro", "Gemini Flash", "Codex", "Other"],
+          "description": "Default AI model pre-selected when logging prompts"
+        },
+        "devtraceai.role": {
+          "type": "string",
+          "enum": ["developer", "manager", "admin"],
+          "default": "developer",
+          "description": "Your role — managers can create teams and view team analytics"
         }
       }
-    }
+    },
+    "keybindings": [
+      {
+        "command": "devtraceai.quickCapture",
+        "key": "ctrl+shift+l",
+        "mac": "cmd+shift+l"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
