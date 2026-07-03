@@ -1,36 +1,54 @@
 import * as vscode from 'vscode';
-import { ExtensionConfig, PromptFilter } from './types';
+import { ExtensionConfig, CONFIG_KEYS, PromptFilter } from './types';
 import { ApiClient } from './apiClient';
 import { PromptTreeProvider } from './promptTreeProvider';
 import { PromptDetailPanel } from './promptDetailPanel';
 import { TeamPatternsTreeProvider } from './teamPatternsTreeProvider';
 import { TeamPatternsDashboard } from './teamPatternsDashboard';
+import { SettingsViewProvider } from './settingsViewProvider';
 
 let statusBarItem: vscode.StatusBarItem;
 
-function getConfig(): ExtensionConfig {
-  const config = vscode.workspace.getConfiguration('gologchat');
+function getConfig(context: vscode.ExtensionContext): ExtensionConfig {
+  const gs = context.globalState;
+  const vs = vscode.workspace.getConfiguration('gologchat');
   return {
-    apiUrl: config.get<string>('apiUrl', 'https://extension-2n4y.onrender.com'),
-    developerId: config.get<string>('developerId'),
-    teamId: config.get<string>('teamId'),
-    enableLogging: config.get<boolean>('enableLogging', true),
-    isAdmin: config.get<boolean>('isAdmin', false),
+    apiUrl: gs.get<string>(CONFIG_KEYS.apiUrl) ?? vs.get<string>('apiUrl', 'https://extension-2n4y.onrender.com'),
+    developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
+    teamId: gs.get<string>(CONFIG_KEYS.teamId) ?? vs.get<string>('teamId'),
+    enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
+    isAdmin: gs.get<boolean>(CONFIG_KEYS.isAdmin) ?? vs.get<boolean>('isAdmin', false),
   };
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const config = getConfig();
+  const config = getConfig(context);
   const client = new ApiClient(config);
   const treeProvider = new PromptTreeProvider(client);
   const teamPatternsProvider = new TeamPatternsTreeProvider(client);
+
+  // Settings webview in sidebar
+  const settingsProvider = new SettingsViewProvider(context);
+  const settingsViewDisposable = vscode.window.registerWebviewViewProvider(
+    SettingsViewProvider.viewId,
+    settingsProvider
+  );
+
+  // React to config changes from the settings webview
+  const settingsConfigWatcher = settingsProvider.onDidChangeConfig((newConfig) => {
+    client.updateConfig(newConfig);
+    void treeProvider.refresh();
+    void teamPatternsProvider.refresh();
+    void checkBackendHealth(client);
+    void autoRegister(client, newConfig);
+  });
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
   statusBarItem.command = 'gologchat.checkConnection';
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  void checkOnboarding(config);
+  void checkOnboarding(context);
   void checkBackendHealth(client);
   void autoRegister(client, config);
 
@@ -48,18 +66,18 @@ export function activate(context: vscode.ExtensionContext) {
   void teamPatternsProvider.refresh();
 
   const logPromptCmd = vscode.commands.registerCommand('gologchat.logPrompt', async () => {
-    const currentConfig = getConfig();
+    const currentConfig = getConfig(context);
     if (!currentConfig.enableLogging) {
       vscode.window.showInformationMessage('GoLogChat logging is disabled in settings.');
       return;
     }
     if (!currentConfig.developerId || !currentConfig.teamId) {
       const setup = await vscode.window.showErrorMessage(
-        'GoLogChat: Please set developerId and teamId in settings.',
+        'GoLogChat: Please set Developer ID and Team ID in the Settings panel.',
         'Open Settings'
       );
       if (setup === 'Open Settings') {
-        void vscode.commands.executeCommand('workbench.action.openSettings', 'gologchat');
+        void vscode.commands.executeCommand('gologchat.settings.focus');
       }
       return;
     }
@@ -130,7 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
     const newTeamId = await vscode.window.showInputBox({
       title: `Edit Profile: ${developerId}`,
       prompt: 'Team ID',
-      value: currentUser?.teamId ?? getConfig().teamId ?? '',
+      value: currentUser?.teamId ?? getConfig(context).teamId ?? '',
       ignoreFocusOut: true,
     });
     if (newTeamId === undefined) { return; }
@@ -157,6 +175,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   const checkConnectionCmd = vscode.commands.registerCommand('gologchat.checkConnection', () => {
     void checkBackendHealth(client);
+  });
+
+  const openSettingsCmd = vscode.commands.registerCommand('gologchat.openSettings', () => {
+    void vscode.commands.executeCommand('gologchat.settings.focus');
   });
 
   const searchCmd = vscode.commands.registerCommand('gologchat.searchPrompts', async () => {
@@ -242,8 +264,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('gologchat')) {
-      const newConfig = getConfig();
+      const newConfig = getConfig(context);
       client.updateConfig(newConfig);
+      settingsProvider.refreshView();
       void treeProvider.refresh();
       void teamPatternsProvider.refresh();
       void checkBackendHealth(client);
@@ -253,6 +276,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     treeView,
     teamPatternsView,
+    settingsViewDisposable,
+    settingsConfigWatcher,
     logPromptCmd,
     refreshCmd,
     refreshPatternsCmd,
@@ -262,6 +287,7 @@ export function activate(context: vscode.ExtensionContext) {
     clearFilterCmd,
     viewDetailCmd,
     checkConnectionCmd,
+    openSettingsCmd,
     searchCmd,
     exportCmd,
     configWatcher
@@ -304,37 +330,18 @@ async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise
   }
 }
 
-async function checkOnboarding(config: ExtensionConfig): Promise<void> {
+async function checkOnboarding(context: vscode.ExtensionContext): Promise<void> {
+  const config = getConfig(context);
   if (config.developerId && config.teamId) { return; }
 
   const action = await vscode.window.showInformationMessage(
     'GoLogChat: Set up your Developer ID and Team ID to start logging prompts.',
-    'Configure Now',
-    'Later'
+    'Open Settings'
   );
 
-  if (action !== 'Configure Now') { return; }
-
-  const developerId = await vscode.window.showInputBox({
-    title: 'GoLogChat Setup',
-    prompt: 'Enter your Developer ID (e.g., your username)',
-    placeHolder: 'john-doe',
-    ignoreFocusOut: true,
-  });
-  if (!developerId) { return; }
-
-  const teamId = await vscode.window.showInputBox({
-    title: 'GoLogChat Setup',
-    prompt: 'Enter your Team ID',
-    placeHolder: 'platform',
-    ignoreFocusOut: true,
-  });
-  if (!teamId) { return; }
-
-  const wsConfig = vscode.workspace.getConfiguration('gologchat');
-  await wsConfig.update('developerId', developerId, vscode.ConfigurationTarget.Global);
-  await wsConfig.update('teamId', teamId, vscode.ConfigurationTarget.Global);
-  vscode.window.showInformationMessage(`GoLogChat: Welcome, ${developerId}! You're all set.`);
+  if (action === 'Open Settings') {
+    await vscode.commands.executeCommand('gologchat.settings.focus');
+  }
 }
 
 async function filterPromptsCommand(treeProvider: PromptTreeProvider): Promise<void> {

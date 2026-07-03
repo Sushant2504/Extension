@@ -13,6 +13,14 @@ export interface User {
   isAdmin: boolean;
 }
 
+export const CONFIG_KEYS = {
+  apiUrl: 'gologchat.apiUrl',
+  developerId: 'gologchat.developerId',
+  teamId: 'gologchat.teamId',
+  enableLogging: 'gologchat.enableLogging',
+  isAdmin: 'gologchat.isAdmin',
+} as const;
+
 export interface ExtensionConfig {
   apiUrl: string;
   developerId?: string;

@@ -54,6 +54,13 @@
           "name": "Team Patterns",
           "icon": "$(organization)",
           "contextualTitle": "GoLogChat"
+        },
+        {
+          "id": "gologchat.settings",
+          "name": "Settings",
+          "type": "webview",
+          "icon": "$(gear)",
+          "contextualTitle": "GoLogChat"
         }
       ]
     },
@@ -112,6 +119,11 @@
         "command": "gologchat.exportPrompts",
         "title": "GoLogChat: Export Prompts",
         "icon": "$(export)"
+      },
+      {
+        "command": "gologchat.openSettings",
+        "title": "GoLogChat: Open Settings",
+        "icon": "$(gear)"
       }
     ],
     "menus": {
