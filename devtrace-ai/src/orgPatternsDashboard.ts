@@ -16,8 +16,8 @@ const patternColors: Record<string, string> = {
   other: '#636d83',
 };
 
-export class TeamPatternsDashboard {
-  private static currentPanel: TeamPatternsDashboard | undefined;
+export class OrgPatternsDashboard {
+  private static currentPanel: OrgPatternsDashboard | undefined;
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
 
@@ -29,26 +29,26 @@ export class TeamPatternsDashboard {
   static async show(client: ApiClient): Promise<void> {
     const column = vscode.ViewColumn.One;
 
-    if (TeamPatternsDashboard.currentPanel) {
-      TeamPatternsDashboard.currentPanel.panel.reveal(column);
-      await TeamPatternsDashboard.currentPanel.update();
+    if (OrgPatternsDashboard.currentPanel) {
+      OrgPatternsDashboard.currentPanel.panel.reveal(column);
+      await OrgPatternsDashboard.currentPanel.update();
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'devtraceai.teamPatternsDashboard',
-      'Team Working Patterns',
+      'devtraceai.orgPatternsDashboard',
+      'Org Working Patterns',
       column,
       { enableScripts: true }
     );
 
-    TeamPatternsDashboard.currentPanel = new TeamPatternsDashboard(panel, client);
-    await TeamPatternsDashboard.currentPanel.update();
+    OrgPatternsDashboard.currentPanel = new OrgPatternsDashboard(panel, client);
+    await OrgPatternsDashboard.currentPanel.update();
   }
 
   private async update(): Promise<void> {
     try {
-      const patterns = await this.client.getTeamPatterns();
+      const patterns = await this.client.getOrgPatterns();
       this.panel.webview.html = this.getHtml(patterns);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -63,7 +63,7 @@ export class TeamPatternsDashboard {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
 
-    const teamTotals = new Map<string, number>();
+    const orgTotals = new Map<string, number>();
     let totalPrompts = 0;
     let mostRecentActivity = '';
     for (const dev of developers) {
@@ -72,12 +72,12 @@ export class TeamPatternsDashboard {
         mostRecentActivity = dev.lastActive;
       }
       for (const p of dev.patterns) {
-        teamTotals.set(p.pattern, (teamTotals.get(p.pattern) ?? 0) + p.count);
+        orgTotals.set(p.pattern, (orgTotals.get(p.pattern) ?? 0) + p.count);
       }
     }
-    const sortedTeamPatterns = [...teamTotals.entries()].sort((a, b) => b[1] - a[1]);
-    const topPattern = sortedTeamPatterns.length > 0 ? sortedTeamPatterns[0][0] : 'none';
-    const uniquePatterns = teamTotals.size;
+    const sortedOrgPatterns = [...orgTotals.entries()].sort((a, b) => b[1] - a[1]);
+    const topPattern = sortedOrgPatterns.length > 0 ? sortedOrgPatterns[0][0] : 'none';
+    const uniquePatterns = orgTotals.size;
 
     const statCards = `
       <div class="stat-grid">
@@ -99,9 +99,9 @@ export class TeamPatternsDashboard {
         </div>
       </div>`;
 
-    const maxTeamCount = sortedTeamPatterns.length > 0 ? sortedTeamPatterns[0][1] : 1;
-    const teamSummaryBars = sortedTeamPatterns.map(([pattern, count], i) => {
-      const pct = maxTeamCount > 0 ? Math.round((count / maxTeamCount) * 100) : 0;
+    const maxOrgCount = sortedOrgPatterns.length > 0 ? sortedOrgPatterns[0][1] : 1;
+    const orgSummaryBars = sortedOrgPatterns.map(([pattern, count], i) => {
+      const pct = maxOrgCount > 0 ? Math.round((count / maxOrgCount) * 100) : 0;
       const color = patternColors[pattern] ?? patternColors['other'];
       const globalPct = totalPrompts > 0 ? Math.round((count / totalPrompts) * 100) : 0;
       return `<div class="bar-row" style="animation-delay: ${i * 50}ms">
@@ -168,8 +168,8 @@ export class TeamPatternsDashboard {
     const emptyState = developers.length === 0
       ? `<div class="empty-state">
           <div class="empty-icon">📊</div>
-          <div class="empty-title">No team activity yet</div>
-          <div class="empty-desc">Log some prompts to start seeing team working patterns here.</div>
+          <div class="empty-title">No org activity yet</div>
+          <div class="empty-desc">Log some prompts to start seeing org working patterns here.</div>
         </div>`
       : '';
 
@@ -178,7 +178,7 @@ export class TeamPatternsDashboard {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Working Patterns</title>
+  <title>Org Working Patterns</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -251,7 +251,7 @@ export class TeamPatternsDashboard {
     }
 
     /* Team summary */
-    .team-summary {
+    .org-summary {
       background: var(--vscode-textBlockQuote-background, rgba(128,128,128,0.04));
       border: 1px solid var(--vscode-widget-border, rgba(128,128,128,0.15));
       border-radius: 8px;
@@ -427,7 +427,7 @@ export class TeamPatternsDashboard {
 </head>
 <body>
   <div class="page-header">
-    <h1>Team Working Patterns</h1>
+    <h1>Org Working Patterns</h1>
     <div class="subtitle">${developers.length} developer${developers.length === 1 ? '' : 's'} · ${totalPrompts} total prompts</div>
   </div>
 
@@ -436,9 +436,9 @@ export class TeamPatternsDashboard {
   ${developers.length > 0 ? `
   ${statCards}
 
-  <div class="team-summary">
+  <div class="org-summary">
     <div class="section-label">Pattern Distribution</div>
-    ${teamSummaryBars}
+    ${orgSummaryBars}
   </div>
 
   <div class="developers-header">
@@ -508,7 +508,7 @@ export class TeamPatternsDashboard {
 <body>
   <div class="error-card">
     <div class="error-icon">⚠</div>
-    <div class="error-title">Failed to load team patterns</div>
+    <div class="error-title">Failed to load org patterns</div>
     <div class="error-msg">${esc(message)}</div>
   </div>
 </body>
@@ -516,7 +516,7 @@ export class TeamPatternsDashboard {
   }
 
   private dispose(): void {
-    TeamPatternsDashboard.currentPanel = undefined;
+    OrgPatternsDashboard.currentPanel = undefined;
     this.panel.dispose();
     for (const d of this.disposables) {
       d.dispose();

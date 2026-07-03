@@ -3,8 +3,8 @@ import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL, PromptFilter } from './type
 import { ApiClient } from './apiClient';
 import { PromptTreeProvider } from './promptTreeProvider';
 import { PromptDetailPanel } from './promptDetailPanel';
-import { TeamPatternsTreeProvider } from './teamPatternsTreeProvider';
-import { TeamPatternsDashboard } from './teamPatternsDashboard';
+import { OrgPatternsTreeProvider } from './orgPatternsTreeProvider';
+import { OrgPatternsDashboard } from './orgPatternsDashboard';
 import { SettingsViewProvider } from './settingsViewProvider';
 
 let statusBarItem: vscode.StatusBarItem;
@@ -15,7 +15,7 @@ function getConfig(context: vscode.ExtensionContext): ExtensionConfig {
   return {
     apiUrl: API_BASE_URL,
     developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
-    teamId: gs.get<string>(CONFIG_KEYS.teamId) ?? vs.get<string>('teamId'),
+    orgId: gs.get<string>(CONFIG_KEYS.orgId) ?? vs.get<string>('orgId'),
     enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
     isAdmin: gs.get<boolean>(CONFIG_KEYS.isAdmin) ?? vs.get<boolean>('isAdmin', false),
   };
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
   const config = getConfig(context);
   const client = new ApiClient(config);
   const treeProvider = new PromptTreeProvider(client);
-  const teamPatternsProvider = new TeamPatternsTreeProvider(client);
+  const orgPatternsProvider = new OrgPatternsTreeProvider(client);
 
   // Settings webview in sidebar
   const settingsProvider = new SettingsViewProvider(context);
@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
   const settingsConfigWatcher = settingsProvider.onDidChangeConfig((newConfig) => {
     client.updateConfig(newConfig);
     void treeProvider.refresh();
-    void teamPatternsProvider.refresh();
+    void orgPatternsProvider.refresh();
     void checkBackendHealth(client);
     void autoRegister(client, newConfig);
   });
@@ -57,13 +57,13 @@ export function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true,
   });
 
-  const teamPatternsView = vscode.window.createTreeView('devtraceai.teamPatterns', {
-    treeDataProvider: teamPatternsProvider,
+  const orgPatternsView = vscode.window.createTreeView('devtraceai.orgPatterns', {
+    treeDataProvider: orgPatternsProvider,
     showCollapseAll: true,
   });
 
   void treeProvider.refresh();
-  void teamPatternsProvider.refresh();
+  void orgPatternsProvider.refresh();
 
   const logPromptCmd = vscode.commands.registerCommand('devtraceai.logPrompt', async () => {
     const currentConfig = getConfig(context);
@@ -71,9 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('DevTrace AI logging is disabled in settings.');
       return;
     }
-    if (!currentConfig.developerId || !currentConfig.teamId) {
+    if (!currentConfig.developerId || !currentConfig.orgId) {
       const setup = await vscode.window.showErrorMessage(
-        'DevTrace AI: Please set Developer ID and Team ID in the Settings panel.',
+        'DevTrace AI: Please set Developer ID and Organization ID in the Settings panel.',
         'Open Settings'
       );
       if (setup === 'Open Settings') {
@@ -128,12 +128,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const refreshPatternsCmd = vscode.commands.registerCommand('devtraceai.refreshTeamPatterns', () => {
-    void teamPatternsProvider.refresh();
+  const refreshPatternsCmd = vscode.commands.registerCommand('devtraceai.refreshOrgPatterns', () => {
+    void orgPatternsProvider.refresh();
   });
 
-  const showDashboardCmd = vscode.commands.registerCommand('devtraceai.showTeamDashboard', () => {
-    void TeamPatternsDashboard.show(client);
+  const showDashboardCmd = vscode.commands.registerCommand('devtraceai.showOrgDashboard', () => {
+    void OrgPatternsDashboard.show(client);
   });
 
   const editDeveloperCmd = vscode.commands.registerCommand('devtraceai.editDeveloper', async (item: { data?: { developerId: string } }) => {
@@ -145,13 +145,13 @@ export function activate(context: vscode.ExtensionContext) {
       catch { return null; }
     })();
 
-    const newTeamId = await vscode.window.showInputBox({
+    const newOrgId = await vscode.window.showInputBox({
       title: `Edit Profile: ${developerId}`,
-      prompt: 'Team ID',
-      value: currentUser?.teamId ?? getConfig(context).teamId ?? '',
+      prompt: 'Organization ID',
+      value: currentUser?.orgId ?? getConfig(context).orgId ?? '',
       ignoreFocusOut: true,
     });
-    if (newTeamId === undefined) { return; }
+    if (newOrgId === undefined) { return; }
 
     const adminChoice = await vscode.window.showQuickPick(
       ['No', 'Yes'],
@@ -163,9 +163,9 @@ export function activate(context: vscode.ExtensionContext) {
     if (adminChoice === undefined) { return; }
 
     try {
-      await client.updateUser(developerId, newTeamId, adminChoice === 'Yes');
+      await client.updateUser(developerId, newOrgId, adminChoice === 'Yes');
       vscode.window.showInformationMessage(`DevTrace AI: Updated profile for ${developerId}.`);
-      void teamPatternsProvider.refresh();
+      void orgPatternsProvider.refresh();
       void treeProvider.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -244,10 +244,10 @@ export function activate(context: vscode.ExtensionContext) {
         content = JSON.stringify(prompts, null, 2);
         language = 'json';
       } else {
-        const header = 'id,developerId,teamId,timestamp,prompt,response';
+        const header = 'id,developerId,orgId,timestamp,prompt,response';
         const csvEscape = (s: string) => `"${s.replace(/"/g, '""')}"`;
         const rows = prompts.map(p =>
-          [p.id, p.developerId, p.teamId, p.timestamp, csvEscape(p.prompt), csvEscape(p.response ?? '')].join(',')
+          [p.id, p.developerId, p.orgId, p.timestamp, csvEscape(p.prompt), csvEscape(p.response ?? '')].join(',')
         );
         content = [header, ...rows].join('\n');
         language = 'csv';
@@ -268,14 +268,14 @@ export function activate(context: vscode.ExtensionContext) {
       client.updateConfig(newConfig);
       settingsProvider.refreshView();
       void treeProvider.refresh();
-      void teamPatternsProvider.refresh();
+      void orgPatternsProvider.refresh();
       void checkBackendHealth(client);
     }
   });
 
   context.subscriptions.push(
     treeView,
-    teamPatternsView,
+    orgPatternsView,
     settingsViewDisposable,
     settingsConfigWatcher,
     logPromptCmd,
@@ -322,7 +322,7 @@ async function checkBackendHealth(client: ApiClient): Promise<void> {
 }
 
 async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise<void> {
-  if (!config.developerId || !config.teamId) { return; }
+  if (!config.developerId || !config.orgId) { return; }
   try {
     await client.registerUser();
   } catch {
@@ -332,10 +332,10 @@ async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise
 
 async function checkOnboarding(context: vscode.ExtensionContext): Promise<void> {
   const config = getConfig(context);
-  if (config.developerId && config.teamId) { return; }
+  if (config.developerId && config.orgId) { return; }
 
   const action = await vscode.window.showInformationMessage(
-    'DevTrace AI: Set up your Developer ID and Team ID to start logging prompts.',
+    'DevTrace AI: Set up your Developer ID and Organization ID to start logging prompts.',
     'Open Settings'
   );
 

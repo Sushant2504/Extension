@@ -63,7 +63,7 @@ class RecentPromptItem extends vscode.TreeItem {
 
 type TreeElement = DeveloperItem | PatternItem | RecentPromptItem;
 
-export class TeamPatternsTreeProvider implements vscode.TreeDataProvider<TreeElement> {
+export class OrgPatternsTreeProvider implements vscode.TreeDataProvider<TreeElement> {
   private _onDidChangeTreeData = new vscode.EventEmitter<TreeElement | undefined | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -73,10 +73,10 @@ export class TeamPatternsTreeProvider implements vscode.TreeDataProvider<TreeEle
 
   async refresh(): Promise<void> {
     try {
-      this.patterns = await this.client.getTeamPatterns();
+      this.patterns = await this.client.getOrgPatterns();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`DevTrace AI: Failed to fetch team patterns: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Failed to fetch org patterns: ${msg}`);
       this.patterns = [];
     }
     this._onDidChangeTreeData.fire();

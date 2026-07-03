@@ -10,8 +10,8 @@ import (
 
 type Storage interface {
 	SavePrompt(prompt *models.Prompt) error
-	GetPrompts(teamID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error)
-	GetPromptsByTeam(teamID string) ([]models.Prompt, error)
+	GetPrompts(orgID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error)
+	GetPromptsByOrg(orgID string) ([]models.Prompt, error)
 	GetAllPrompts() ([]models.Prompt, error)
 	GetUser(developerID string) (*models.User, error)
 	SaveUser(user *models.User) error
@@ -37,13 +37,13 @@ func (s *InMemoryStorage) SavePrompt(prompt *models.Prompt) error {
 	return nil
 }
 
-func (s *InMemoryStorage) GetPrompts(teamID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error) {
+func (s *InMemoryStorage) GetPrompts(orgID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var results []models.Prompt
 	for _, prompt := range s.prompts {
-		if !isAdmin && prompt.TeamID != teamID {
+		if !isAdmin && prompt.OrgID != orgID {
 			continue
 		}
 		if developerID != "" && prompt.DeveloperID != developerID {
@@ -60,13 +60,13 @@ func (s *InMemoryStorage) GetPrompts(teamID string, developerID string, isAdmin 
 	return results, nil
 }
 
-func (s *InMemoryStorage) GetPromptsByTeam(teamID string) ([]models.Prompt, error) {
+func (s *InMemoryStorage) GetPromptsByOrg(orgID string) ([]models.Prompt, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var results []models.Prompt
 	for _, prompt := range s.prompts {
-		if prompt.TeamID == teamID {
+		if prompt.OrgID == orgID {
 			results = append(results, *prompt)
 		}
 	}

@@ -4,7 +4,7 @@ Track and analyze AI prompts across your development team.
 
 ## Features
 - Command palette action: `DevTrace AI: Log Prompt` (captures prompt + optional response, sends to backend).
-- Uses your configured Developer ID and Team ID for access control.
+- Uses your configured Developer ID and Organization ID for access control.
 - Respects `enableLogging` toggle.
 
 ## Requirements
@@ -13,7 +13,7 @@ Track and analyze AI prompts across your development team.
 ## Settings
 All settings are under `DevTrace AI`:
 - `devtraceai.developerId` (`string`): Your Developer ID.
-- `devtraceai.teamId` (`string`): Your Team ID.
+- `devtraceai.orgId` (`string`): Your Organization ID.
 - `devtraceai.enableLogging` (`boolean`, default `true`): Master toggle.
 - `devtraceai.isAdmin` (`boolean`, default `false`): Marks requests as admin (use only if allowed).
 

@@ -3,20 +3,20 @@ import { Prompt, User, PromptFilter, ExtensionConfig, DeveloperPatterns } from '
 export class ApiClient {
   private baseUrl: string;
   private developerId: string;
-  private teamId: string;
+  private orgId: string;
   private isAdmin: boolean;
 
   constructor(config: ExtensionConfig) {
     this.baseUrl = config.apiUrl.replace(/\/+$/, '');
     this.developerId = config.developerId ?? '';
-    this.teamId = config.teamId ?? '';
+    this.orgId = config.orgId ?? '';
     this.isAdmin = config.isAdmin;
   }
 
   updateConfig(config: ExtensionConfig): void {
     this.baseUrl = config.apiUrl.replace(/\/+$/, '');
     this.developerId = config.developerId ?? '';
-    this.teamId = config.teamId ?? '';
+    this.orgId = config.orgId ?? '';
     this.isAdmin = config.isAdmin;
   }
 
@@ -24,7 +24,7 @@ export class ApiClient {
     return {
       'Content-Type': 'application/json',
       'X-Developer-ID': this.developerId,
-      'X-Team-ID': this.teamId,
+      'X-Org-ID': this.orgId,
       'X-Is-Admin': String(this.isAdmin),
     };
   }
@@ -52,7 +52,7 @@ export class ApiClient {
       prompt,
       response,
       developerId: this.developerId,
-      teamId: this.teamId,
+      orgId: this.orgId,
     });
   }
 
@@ -70,7 +70,7 @@ export class ApiClient {
   async registerUser(): Promise<User> {
     return this.request('POST', '/api/users', {
       developerId: this.developerId,
-      teamId: this.teamId,
+      orgId: this.orgId,
       isAdmin: this.isAdmin,
     });
   }
@@ -79,12 +79,12 @@ export class ApiClient {
     return this.request('GET', `/api/users/${encodeURIComponent(developerId)}`);
   }
 
-  async updateUser(developerId: string, teamId: string, isAdmin: boolean): Promise<User> {
-    return this.request('POST', '/api/users', { developerId, teamId, isAdmin });
+  async updateUser(developerId: string, orgId: string, isAdmin: boolean): Promise<User> {
+    return this.request('POST', '/api/users', { developerId, orgId, isAdmin });
   }
 
-  async getTeamPatterns(): Promise<DeveloperPatterns[]> {
-    const result = await this.request<DeveloperPatterns[] | null>('GET', '/api/team/patterns');
+  async getOrgPatterns(): Promise<DeveloperPatterns[]> {
+    const result = await this.request<DeveloperPatterns[] | null>('GET', '/api/org/patterns');
     return result ?? [];
   }
 }

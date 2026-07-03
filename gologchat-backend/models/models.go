@@ -6,7 +6,7 @@ import "time"
 type Prompt struct {
 	ID          string    `json:"id"`
 	DeveloperID string    `json:"developerId"`
-	TeamID      string    `json:"teamId"`
+	OrgID       string    `json:"orgId"`
 	Prompt      string    `json:"prompt"`
 	Response    string    `json:"response,omitempty"`
 	Timestamp   time.Time `json:"timestamp"`
@@ -15,7 +15,7 @@ type Prompt struct {
 // User represents a user with their role
 type User struct {
 	DeveloperID string `json:"developerId"`
-	TeamID      string `json:"teamId"`
+	OrgID       string `json:"orgId"`
 	IsAdmin     bool   `json:"isAdmin"`
 }
 

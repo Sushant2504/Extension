@@ -1,7 +1,7 @@
 export interface Prompt {
   id: string;
   developerId: string;
-  teamId: string;
+  orgId: string;
   prompt: string;
   response?: string;
   timestamp: string;
@@ -9,7 +9,7 @@ export interface Prompt {
 
 export interface User {
   developerId: string;
-  teamId: string;
+  orgId: string;
   isAdmin: boolean;
 }
 
@@ -17,7 +17,7 @@ export const API_BASE_URL = 'https://extension-2n4y.onrender.com';
 
 export const CONFIG_KEYS = {
   developerId: 'devtraceai.developerId',
-  teamId: 'devtraceai.teamId',
+  orgId: 'devtraceai.orgId',
   enableLogging: 'devtraceai.enableLogging',
   isAdmin: 'devtraceai.isAdmin',
 } as const;
@@ -25,7 +25,7 @@ export const CONFIG_KEYS = {
 export interface ExtensionConfig {
   apiUrl: string;
   developerId?: string;
-  teamId?: string;
+  orgId?: string;
   enableLogging: boolean;
   isAdmin: boolean;
 }

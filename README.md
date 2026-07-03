@@ -1,6 +1,6 @@
 # DevTrace AI
 
-A VS Code extension that tracks and analyzes AI prompts across your development team. Log prompts, view history, detect usage patterns, and gain team-wide visibility into how AI tools are being used.
+A VS Code extension that tracks and analyzes AI prompts across your development organization. Log prompts, view history, detect usage patterns, and gain org-wide visibility into how AI tools are being used.
 
 **Live Backend:** `https://extension-2n4y.onrender.com`
 
@@ -14,11 +14,11 @@ A VS Code extension that tracks and analyzes AI prompts across your development 
 - Filter by developer ID and date range
 - Export prompts as JSON or CSV
 
-### Team Patterns & Analytics
+### Org Patterns & Analytics
 - Automatic pattern detection across 10 categories (debugging, refactoring, testing, feature, documentation, review, deployment, configuration, learning, api)
-- Team patterns tree view with per-developer breakdown
+- Org patterns tree view with per-developer breakdown
 - Visual dashboard with bar charts, stat cards, and recent activity tables
-- Admin mode to view all teams' data
+- Admin mode to view all orgs' data
 
 ### Settings & Configuration
 - In-extension settings panel (no need to edit settings.json)
@@ -43,8 +43,8 @@ DevTrace-AI/
 │   │   ├── settingsViewProvider.ts    # Settings sidebar webview
 │   │   ├── promptTreeProvider.ts      # Prompt History tree view
 │   │   ├── promptDetailPanel.ts       # Prompt detail webview panel
-│   │   ├── teamPatternsTreeProvider.ts # Team Patterns tree view
-│   │   └── teamPatternsDashboard.ts   # Team dashboard webview panel
+│   │   ├── orgPatternsTreeProvider.ts # Org Patterns tree view
+│   │   └── orgPatternsDashboard.ts   # Org dashboard webview panel
 │   └── package.json               # Extension manifest
 │
 ├── gologchat-backend/             # Go Backend Server
@@ -90,7 +90,7 @@ The extension ships with the backend URL pre-configured. Just install and go:
    ```
    Press **F5** to launch the Extension Development Host.
 
-4. Open the **DevTrace AI** sidebar, go to **Settings**, enter your Developer ID and Team ID, and hit **Save**.
+4. Open the **DevTrace AI** sidebar, go to **Settings**, enter your Developer ID and Organization ID, and hit **Save**.
 
 ### Running the Backend Locally
 
@@ -112,9 +112,9 @@ The server starts on `http://localhost:8080`. To use it, update `API_BASE_URL` i
 | `DevTrace AI: Clear Filter` | Remove active filters |
 | `DevTrace AI: Export Prompts` | Export as JSON or CSV |
 | `DevTrace AI: Refresh Prompts` | Reload prompt history |
-| `DevTrace AI: Team Patterns Dashboard` | Open the visual analytics dashboard |
-| `DevTrace AI: Refresh Team Patterns` | Reload team pattern data |
-| `DevTrace AI: Edit Developer Profile` | Update a developer's team/admin status |
+| `DevTrace AI: Org Patterns Dashboard` | Open the visual analytics dashboard |
+| `DevTrace AI: Refresh Org Patterns` | Reload org pattern data |
+| `DevTrace AI: Edit Developer Profile` | Update a developer's org/admin status |
 | `DevTrace AI: Check Backend Connection` | Test connectivity to the backend |
 | `DevTrace AI: Open Settings` | Focus the settings panel |
 
@@ -129,9 +129,9 @@ Base URL: `https://extension-2n4y.onrender.com`
 | `GET` | `/api/prompts` | Get prompts (with optional filters) |
 | `POST` | `/api/users` | Register or update a user |
 | `GET` | `/api/users/{id}` | Get user info |
-| `GET` | `/api/team/patterns` | Get team working patterns |
+| `GET` | `/api/org/patterns` | Get org working patterns |
 
-All endpoints accept `X-Developer-ID`, `X-Team-ID`, and `X-Is-Admin` headers for access control.
+All endpoints accept `X-Developer-ID`, `X-Org-ID`, and `X-Is-Admin` headers for access control.
 
 ## Configuration
 
@@ -140,7 +140,7 @@ Settings are managed through the in-extension Settings panel. They are stored in
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `devtraceai.developerId` | `string` | — | Your unique developer identifier |
-| `devtraceai.teamId` | `string` | — | Your team identifier |
+| `devtraceai.orgId` | `string` | — | Your organization identifier |
 | `devtraceai.enableLogging` | `boolean` | `true` | Toggle prompt logging |
 | `devtraceai.isAdmin` | `boolean` | `false` | Enable admin mode |
 
@@ -176,7 +176,7 @@ go test ./...
 ## Known Limitations
 
 - Backend uses in-memory storage — data resets on server restart
-- No authentication (team/admin IDs are trust-based)
+- No authentication (org/admin IDs are trust-based)
 - Prompt logging is manual (no automatic capture from AI tools yet)
 - Render free tier has cold starts (~30s on first request after inactivity)
 

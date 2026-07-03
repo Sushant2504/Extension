@@ -5,7 +5,7 @@ Go backend server for the DevTrace AI VS Code extension.
 ## Features
 
 - REST API for storing and retrieving prompts
-- Role-based access control (Team ID based)
+- Role-based access control (Organization ID based)
 - Admin role support
 - Filtering by developer ID and date range
 - In-memory storage (can be replaced with database)

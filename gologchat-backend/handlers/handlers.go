@@ -50,22 +50,22 @@ func (api *API) SavePrompt(w http.ResponseWriter, r *http.Request) {
 func (api *API) GetPrompts(w http.ResponseWriter, r *http.Request) {
 	// Get user info from headers (set by extension)
 	developerID := r.Header.Get("X-Developer-ID")
-	teamID := r.Header.Get("X-Team-ID")
+	orgID := r.Header.Get("X-Org-ID")
 	isAdmin := r.Header.Get("X-Is-Admin") == "true"
-	
+
 	// Get user from storage to verify admin status
 	if developerID != "" {
 		user, err := api.storage.GetUser(developerID)
 		if err == nil {
-			teamID = user.TeamID
+			orgID = user.OrgID
 			isAdmin = user.IsAdmin
 		}
 	}
-	
+
 	// Parse query parameters
 	query := r.URL.Query()
 	filterDeveloperID := query.Get("developerId")
-	
+
 	var startDate, endDate *time.Time
 	if startStr := query.Get("startDate"); startStr != "" {
 		if t, err := time.Parse(time.RFC3339, startStr); err == nil {
@@ -77,8 +77,8 @@ func (api *API) GetPrompts(w http.ResponseWriter, r *http.Request) {
 			endDate = &t
 		}
 	}
-	
-	prompts, err := api.storage.GetPrompts(teamID, filterDeveloperID, isAdmin, startDate, endDate)
+
+	prompts, err := api.storage.GetPrompts(orgID, filterDeveloperID, isAdmin, startDate, endDate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -120,22 +120,22 @@ func (api *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// GET /api/team/patterns - Get team working patterns
-func (api *API) GetTeamPatterns(w http.ResponseWriter, r *http.Request) {
-	teamID := r.Header.Get("X-Team-ID")
+// GET /api/org/patterns - Get org working patterns
+func (api *API) GetOrgPatterns(w http.ResponseWriter, r *http.Request) {
+	orgID := r.Header.Get("X-Org-ID")
 	isAdmin := r.Header.Get("X-Is-Admin") == "true"
 
 	developerID := r.Header.Get("X-Developer-ID")
 	if developerID != "" {
 		user, err := api.storage.GetUser(developerID)
 		if err == nil {
-			teamID = user.TeamID
+			orgID = user.OrgID
 			isAdmin = user.IsAdmin
 		}
 	}
 
-	if teamID == "" && !isAdmin {
-		http.Error(w, "teamId is required", http.StatusBadRequest)
+	if orgID == "" && !isAdmin {
+		http.Error(w, "orgId is required", http.StatusBadRequest)
 		return
 	}
 
@@ -144,7 +144,7 @@ func (api *API) GetTeamPatterns(w http.ResponseWriter, r *http.Request) {
 	if isAdmin {
 		prompts, err = api.storage.GetAllPrompts()
 	} else {
-		prompts, err = api.storage.GetPromptsByTeam(teamID)
+		prompts, err = api.storage.GetPromptsByOrg(orgID)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

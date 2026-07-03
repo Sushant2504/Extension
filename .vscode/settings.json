@@ -1,6 +1,6 @@
 {
   "devtraceai.developerId": "snadavad",
-  "devtraceai.teamId": "platform",
+  "devtraceai.orgId": "platform",
   "devtraceai.enableLogging": true,
   "devtraceai.isAdmin": true
 }

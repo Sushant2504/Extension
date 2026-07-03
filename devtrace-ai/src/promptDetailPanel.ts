@@ -211,8 +211,8 @@ export class PromptDetailPanel {
         <span class="meta-value">${esc(prompt.developerId)}</span>
       </div>
       <div class="meta-card">
-        <span class="meta-label">Team</span>
-        <span class="meta-value">${esc(prompt.teamId)}</span>
+        <span class="meta-label">Organization</span>
+        <span class="meta-value">${esc(prompt.orgId)}</span>
       </div>
       <div class="meta-card">
         <span class="meta-label">Time</span>

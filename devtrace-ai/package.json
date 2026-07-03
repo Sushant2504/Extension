@@ -1,7 +1,7 @@
 {
   "name": "devtrace-ai",
   "displayName": "DevTrace AI",
-  "description": "Track and analyze AI prompts across your development team.",
+  "description": "Track and analyze AI prompts across your development organization.",
   "version": "0.1.0",
   "publisher": "SushantNadavade",
   "engines": {
@@ -14,7 +14,7 @@
     "ai",
     "prompts",
     "logging",
-    "team"
+    "organization"
   ],
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
   "license": "MIT",
   "activationEvents": [
     "onView:devtraceai.promptHistory",
-    "onView:devtraceai.teamPatterns"
+    "onView:devtraceai.orgPatterns"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -50,8 +50,8 @@
           "contextualTitle": "DevTrace AI"
         },
         {
-          "id": "devtraceai.teamPatterns",
-          "name": "Team Patterns",
+          "id": "devtraceai.orgPatterns",
+          "name": "Org Patterns",
           "icon": "$(organization)",
           "contextualTitle": "DevTrace AI"
         },
@@ -96,13 +96,13 @@
         "icon": "$(edit)"
       },
       {
-        "command": "devtraceai.refreshTeamPatterns",
-        "title": "DevTrace AI: Refresh Team Patterns",
+        "command": "devtraceai.refreshOrgPatterns",
+        "title": "DevTrace AI: Refresh Org Patterns",
         "icon": "$(refresh)"
       },
       {
-        "command": "devtraceai.showTeamDashboard",
-        "title": "DevTrace AI: Team Patterns Dashboard",
+        "command": "devtraceai.showOrgDashboard",
+        "title": "DevTrace AI: Org Patterns Dashboard",
         "icon": "$(graph)"
       },
       {
@@ -154,13 +154,13 @@
           "group": "navigation@5"
         },
         {
-          "command": "devtraceai.refreshTeamPatterns",
-          "when": "view == devtraceai.teamPatterns",
+          "command": "devtraceai.refreshOrgPatterns",
+          "when": "view == devtraceai.orgPatterns",
           "group": "navigation@1"
         },
         {
-          "command": "devtraceai.showTeamDashboard",
-          "when": "view == devtraceai.teamPatterns",
+          "command": "devtraceai.showOrgDashboard",
+          "when": "view == devtraceai.orgPatterns",
           "group": "navigation@2"
         }
       ],
@@ -172,7 +172,7 @@
         },
         {
           "command": "devtraceai.editDeveloper",
-          "when": "view == devtraceai.teamPatterns && viewItem == developer",
+          "when": "view == devtraceai.orgPatterns && viewItem == developer",
           "group": "inline"
         }
       ]
@@ -184,9 +184,9 @@
           "type": "string",
           "description": "Your Developer ID used for logging prompts"
         },
-        "devtraceai.teamId": {
+        "devtraceai.orgId": {
           "type": "string",
-          "description": "Your Team ID used for access control"
+          "description": "Your Organization ID used for access control"
         },
         "devtraceai.enableLogging": {
           "type": "boolean",

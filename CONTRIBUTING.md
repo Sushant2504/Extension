@@ -56,8 +56,8 @@ devtrace-ai/           # VS Code extension (TypeScript)
     settingsViewProvider.ts       # Settings sidebar webview
     promptTreeProvider.ts         # Prompt History tree view
     promptDetailPanel.ts          # Prompt detail panel (webview)
-    teamPatternsTreeProvider.ts   # Team Patterns tree view
-    teamPatternsDashboard.ts      # Team dashboard (webview)
+    orgPatternsTreeProvider.ts   # Org Patterns tree view
+    orgPatternsDashboard.ts      # Org dashboard (webview)
 
 gologchat-backend/     # Go HTTP server
   main.go              # Routes and server startup
@@ -122,7 +122,7 @@ The extension has three webview panels with inline HTML/CSS/JS:
 
 - **Settings panel** (`settingsViewProvider.ts`) — sidebar webview
 - **Prompt detail** (`promptDetailPanel.ts`) — editor panel
-- **Team dashboard** (`teamPatternsDashboard.ts`) — editor panel
+- **Org dashboard** (`orgPatternsDashboard.ts`) — editor panel
 
 All webviews use VS Code CSS variables (`--vscode-*`) for theming. When modifying webview UI:
 

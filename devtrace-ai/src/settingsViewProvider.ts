@@ -47,7 +47,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     return {
       apiUrl: API_BASE_URL,
       developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
-      teamId: gs.get<string>(CONFIG_KEYS.teamId) ?? vs.get<string>('teamId'),
+      orgId: gs.get<string>(CONFIG_KEYS.orgId) ?? vs.get<string>('orgId'),
       enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
       isAdmin: gs.get<boolean>(CONFIG_KEYS.isAdmin) ?? vs.get<boolean>('isAdmin', false),
     };
@@ -59,8 +59,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     if (partial.developerId !== undefined) {
       await gs.update(CONFIG_KEYS.developerId, partial.developerId || undefined);
     }
-    if (partial.teamId !== undefined) {
-      await gs.update(CONFIG_KEYS.teamId, partial.teamId || undefined);
+    if (partial.orgId !== undefined) {
+      await gs.update(CONFIG_KEYS.orgId, partial.orgId || undefined);
     }
     if (partial.enableLogging !== undefined) {
       await gs.update(CONFIG_KEYS.enableLogging, partial.enableLogging);
@@ -357,9 +357,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       <div class="field-hint">Your unique identifier for prompt attribution</div>
     </div>
     <div class="field">
-      <label class="field-label" for="teamId">Team ID</label>
-      <input type="text" id="teamId" placeholder="e.g., platform" spellcheck="false" />
-      <div class="field-hint">Determines which team's prompts you can see</div>
+      <label class="field-label" for="orgId">Organization ID</label>
+      <input type="text" id="orgId" placeholder="e.g., acme-corp" spellcheck="false" />
+      <div class="field-hint">Your organization — determines which org's prompts you can see</div>
     </div>
   </div>
 
@@ -378,7 +378,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     <div class="toggle-row">
       <div class="toggle-info">
         <span class="toggle-label">Admin Mode</span>
-        <span class="toggle-desc">View all teams' prompts and patterns</span>
+        <span class="toggle-desc">View all orgs' prompts and patterns</span>
       </div>
       <label class="switch">
         <input type="checkbox" id="isAdmin" />
@@ -403,7 +403,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     const vscode = acquireVsCodeApi();
     const f = {
       developerId: document.getElementById('developerId'),
-      teamId: document.getElementById('teamId'),
+      orgId: document.getElementById('orgId'),
       enableLogging: document.getElementById('enableLogging'),
       isAdmin: document.getElementById('isAdmin'),
     };
@@ -421,7 +421,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     function checkDirty() {
       const current = {
         developerId: f.developerId.value.trim(),
-        teamId: f.teamId.value.trim(),
+        orgId: f.orgId.value.trim(),
         enableLogging: f.enableLogging.checked,
         isAdmin: f.isAdmin.checked,
       };
@@ -430,7 +430,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     }
 
     f.developerId.addEventListener('input', checkDirty);
-    f.teamId.addEventListener('input', checkDirty);
+    f.orgId.addEventListener('input', checkDirty);
     f.enableLogging.addEventListener('change', checkDirty);
     f.isAdmin.addEventListener('change', checkDirty);
 
@@ -438,13 +438,13 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       const msg = event.data;
       if (msg.type === 'configLoaded') {
         f.developerId.value = msg.config.developerId || '';
-        f.teamId.value = msg.config.teamId || '';
+        f.orgId.value = msg.config.orgId || '';
         f.enableLogging.checked = msg.config.enableLogging !== false;
         f.isAdmin.checked = msg.config.isAdmin === true;
 
         originalValues = {
           developerId: f.developerId.value.trim(),
-          teamId: f.teamId.value.trim(),
+          orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
         };
@@ -461,7 +461,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 
         originalValues = {
           developerId: f.developerId.value.trim(),
-          teamId: f.teamId.value.trim(),
+          orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
         };
@@ -482,7 +482,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         type: 'saveConfig',
         config: {
           developerId: f.developerId.value.trim(),
-          teamId: f.teamId.value.trim(),
+          orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
         },
