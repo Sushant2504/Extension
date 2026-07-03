@@ -1,504 +1,189 @@
-# DevTrace AI - Team Prompt Tracker
+# DevTrace AI
 
-## 📋 Project Overview
+A VS Code extension that tracks and analyzes AI prompts across your development team. Log prompts, view history, detect usage patterns, and gain team-wide visibility into how AI tools are being used.
 
-**DevTrace AI** is a VS Code extension designed to track and analyze AI prompts used during development. It helps teams understand how AI assistance (like Cursor AI) impacts their development workflow by logging prompts, responses, and their effects on the codebase.
+**Live Backend:** `https://extension-2n4y.onrender.com`
 
-### What is DevTrace AI?
+## Features
 
-DevTrace AI is a **team collaboration tool** that:
-- **Captures** all AI prompts and responses from your development sessions
-- **Tracks** which developers are using AI assistance and how frequently
-- **Analyzes** the impact of AI prompts on your codebase
-- **Provides** team-wide visibility into AI usage patterns
-- **Enables** admins to monitor and manage AI prompt history across teams
+### Prompt Logging & History
+- Log AI prompts and responses via the command palette
+- Browse prompt history grouped by date in the sidebar
+- View full prompt details with copy-to-clipboard support
+- Search prompts by text across all fields
+- Filter by developer ID and date range
+- Export prompts as JSON or CSV
 
-### Core Purpose
+### Team Patterns & Analytics
+- Automatic pattern detection across 10 categories (debugging, refactoring, testing, feature, documentation, review, deployment, configuration, learning, api)
+- Team patterns tree view with per-developer breakdown
+- Visual dashboard with bar charts, stat cards, and recent activity tables
+- Admin mode to view all teams' data
 
-The extension addresses the need for:
-- **Transparency**: See what AI prompts are being used across your team
-- **Accountability**: Track AI-assisted code changes
-- **Learning**: Understand which prompts are most effective
-- **Governance**: Manage and review AI usage in enterprise environments
-- **Analytics**: Generate insights on AI assistance patterns
+### Settings & Configuration
+- In-extension settings panel (no need to edit settings.json)
+- Custom toggle switches for logging and admin mode
+- Connection status indicator
+- Auto-registration with the backend on config change
 
----
+### Developer Experience
+- Status bar indicator showing backend connection health (with 3-retry logic)
+- Onboarding flow for first-time setup
+- Themed UI that matches your VS Code color scheme (light/dark)
 
-## 🎯 What the Extension Provides
-
-### For Individual Developers
-
-1. **Automatic Prompt Logging**
-   - Seamlessly captures prompts sent to AI assistants (Cursor, GitHub Copilot, etc.)
-   - Records responses and associated code changes
-   - Works in the background without interrupting workflow
-
-2. **Personal History**
-   - View your own prompt history
-   - Search and filter by date, project, or prompt type
-   - Track your AI usage patterns
-
-3. **Privacy Controls**
-   - Control what gets logged
-   - Option to exclude sensitive information
-
-### For Team Admins
-
-1. **Team Dashboard**
-   - View all prompts across the team
-   - Filter by developer, team, date range
-   - Monitor AI usage statistics
-
-2. **Access Control**
-   - Role-based permissions (Admin vs Developer)
-   - Team-based data isolation
-   - Secure API access
-
-3. **Analytics & Reporting**
-   - Usage statistics per developer
-   - Most common prompt patterns
-   - Time-based trends
-
-### For Organizations
-
-1. **Compliance & Audit**
-   - Complete audit trail of AI interactions
-   - Export capabilities for compliance reporting
-   - Data retention policies
-
-2. **Cost Management**
-   - Track AI API usage
-   - Identify high-usage patterns
-   - Optimize AI spending
-
----
-
-## 🏗️ Architecture
-
-### Components
+## Project Structure
 
 ```
-DevTrace AI/
-├── devtrace-ai/              # VS Code Extension (TypeScript)
+DevTrace-AI/
+├── devtrace-ai/                   # VS Code Extension (TypeScript)
 │   ├── src/
-│   │   └── extension.ts    # Extension entry point
-│   └── package.json        # Extension manifest
+│   │   ├── extension.ts           # Entry point, command registration
+│   │   ├── apiClient.ts           # HTTP client for backend API
+│   │   ├── types.ts               # Shared types, constants, API URL
+│   │   ├── settingsViewProvider.ts    # Settings sidebar webview
+│   │   ├── promptTreeProvider.ts      # Prompt History tree view
+│   │   ├── promptDetailPanel.ts       # Prompt detail webview panel
+│   │   ├── teamPatternsTreeProvider.ts # Team Patterns tree view
+│   │   └── teamPatternsDashboard.ts   # Team dashboard webview panel
+│   └── package.json               # Extension manifest
 │
-└── gologchat-backend/      # Go Backend Server
-    ├── main.go             # Server entry point
-    ├── models/             # Data models
-    │   └── models.go       # Prompt, User models
-    ├── storage/            # Storage layer
-    │   └── storage.go      # Storage interface & implementation
-    ├── handlers/           # API handlers
-    │   └── handlers.go    # HTTP request handlers
-    └── middleware/         # Middleware
-        └── cors.go         # CORS configuration
+├── gologchat-backend/             # Go Backend Server
+│   ├── main.go                    # Server entry point, routes
+│   ├── handlers/
+│   │   ├── handlers.go            # API request handlers
+│   │   └── patterns.go            # Prompt pattern detection
+│   ├── models/models.go           # Data models
+│   ├── storage/storage.go         # In-memory storage with sync.RWMutex
+│   └── middleware/cors.go         # CORS middleware
+│
+├── render.yaml                    # Render deployment config
+└── README.md
 ```
 
-### Data Flow
-
-1. **Extension** captures prompts from VS Code
-2. **Extension** sends data to **Backend API**
-3. **Backend** stores data in storage layer
-4. **Backend** serves data via REST API
-5. **Extension** displays data in VS Code UI
-
-### Technology Stack
-
-- **Extension**: TypeScript, VS Code Extension API
-- **Backend**: Go, Gorilla Mux (HTTP router)
-- **Storage**: In-memory (can be replaced with PostgreSQL, MongoDB, etc.)
-
----
-
-## ✨ Features
-
-### Current Features (MVP)
-
-- ✅ REST API for prompt storage and retrieval
-- ✅ Role-based access control (Team ID based)
-- ✅ Admin role support
-- ✅ Filtering by developer ID and date range
-- ✅ In-memory storage
-- ✅ CORS support for extension-backend communication
-- ✅ Health check endpoint
-
-### Planned Features
-
-- 🔄 VS Code extension UI for viewing prompts
-- 🔄 Real-time prompt capture from Cursor AI
-- 🔄 Dashboard view in VS Code
-- 🔄 Database persistence (PostgreSQL/SQLite)
-- 🔄 Authentication & authorization
-- 🔄 Export functionality (CSV, JSON)
-- 🔄 Analytics dashboard
-- 🔄 Search functionality
-- 🔄 Prompt templates library
-- 🔄 Integration with other AI tools
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- **VS Code** 1.106.1 or higher
-- **Go** 1.21 or higher (for backend)
-- **Node.js** and **npm** (for extension development)
+- **VS Code** 1.106.1+
+- **Node.js** 18+ and **npm** (for extension development)
+- **Go** 1.21+ (only if running the backend locally)
 
-### Backend Setup
+### Quick Start (using deployed backend)
 
-1. **Navigate to backend directory**
+The extension ships with the backend URL pre-configured. Just install and go:
+
+1. Clone the repo and open in VS Code
    ```bash
-   cd gologchat-backend
+   git clone https://github.com/Sushant2504/Extension.git
+   cd Extension
    ```
 
-2. **Install dependencies**
-   ```bash
-   go mod tidy
-   ```
-
-3. **Run the server**
-   ```bash
-   go run main.go
-   ```
-   
-   Or build and run:
-   ```bash
-   go build -o gologchat-backend
-   ./gologchat-backend
-   ```
-
-4. **Configure port** (optional)
-   ```bash
-   export PORT=8080
-   go run main.go
-   ```
-
-The server will start on `http://localhost:8080` by default.
-
-### Extension Setup
-
-1. **Navigate to extension directory**
+2. Install extension dependencies
    ```bash
    cd devtrace-ai
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
    ```
 
-3. **Build the extension**
+3. Build and launch
    ```bash
    npm run compile
    ```
+   Press **F5** to launch the Extension Development Host.
 
-4. **Run in development mode**
-   - Press `F5` in VS Code to launch Extension Development Host
-   - Or use: `code --extensionDevelopmentPath=./devtrace-ai`
+4. Open the **DevTrace AI** sidebar, go to **Settings**, enter your Developer ID and Team ID, and hit **Save**.
 
-5. **Configure extension settings**
-   - Set the backend API URL in VS Code settings
-   - Configure your Developer ID and Team ID
+### Running the Backend Locally
 
----
-
-## 📡 API Documentation
-
-### Base URL
-```
-http://localhost:8080/api
+```bash
+cd gologchat-backend
+go mod tidy
+go run main.go
 ```
 
-### Endpoints
+The server starts on `http://localhost:8080`. To use it, update `API_BASE_URL` in `devtrace-ai/src/types.ts`.
 
-#### Health Check
-```http
-GET /api/health
-```
-**Response:**
-```json
-{
-  "status": "ok"
-}
-```
+## Commands
 
-#### Save Prompt
-```http
-POST /api/prompts
-Content-Type: application/json
-X-Developer-ID: developer-123
-X-Team-ID: team-456
-X-Is-Admin: false
-```
-**Request Body:**
-```json
-{
-  "prompt": "How do I implement authentication?",
-  "response": "You can use JWT tokens...",
-  "developerId": "developer-123",
-  "teamId": "team-456"
-}
-```
-**Response:**
-```json
-{
-  "id": "uuid-here",
-  "developerId": "developer-123",
-  "teamId": "team-456",
-  "prompt": "How do I implement authentication?",
-  "response": "You can use JWT tokens...",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
+| Command | Description |
+|---------|-------------|
+| `DevTrace AI: Log Prompt` | Log a prompt and optional response |
+| `DevTrace AI: Search Prompts` | Full-text search across all prompts |
+| `DevTrace AI: Filter Prompts` | Filter by developer ID and/or date range |
+| `DevTrace AI: Clear Filter` | Remove active filters |
+| `DevTrace AI: Export Prompts` | Export as JSON or CSV |
+| `DevTrace AI: Refresh Prompts` | Reload prompt history |
+| `DevTrace AI: Team Patterns Dashboard` | Open the visual analytics dashboard |
+| `DevTrace AI: Refresh Team Patterns` | Reload team pattern data |
+| `DevTrace AI: Edit Developer Profile` | Update a developer's team/admin status |
+| `DevTrace AI: Check Backend Connection` | Test connectivity to the backend |
+| `DevTrace AI: Open Settings` | Focus the settings panel |
 
-#### Get Prompts
-```http
-GET /api/prompts?developerId=developer-123&startDate=2024-01-01T00:00:00Z&endDate=2024-01-31T23:59:59Z
-X-Developer-ID: developer-123
-X-Team-ID: team-456
-X-Is-Admin: false
-```
-**Query Parameters:**
-- `developerId` (optional): Filter by developer
-- `startDate` (optional): ISO 8601 format
-- `endDate` (optional): ISO 8601 format
+## API Endpoints
 
-**Response:**
-```json
-[
-  {
-    "id": "uuid-1",
-    "developerId": "developer-123",
-    "teamId": "team-456",
-    "prompt": "How do I implement authentication?",
-    "response": "You can use JWT tokens...",
-    "timestamp": "2024-01-15T10:30:00Z"
-  }
-]
-```
+Base URL: `https://extension-2n4y.onrender.com`
 
-#### Register/Update User
-```http
-POST /api/users
-Content-Type: application/json
-```
-**Request Body:**
-```json
-{
-  "developerId": "developer-123",
-  "teamId": "team-456",
-  "isAdmin": false
-}
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/prompts` | Save a new prompt |
+| `GET` | `/api/prompts` | Get prompts (with optional filters) |
+| `POST` | `/api/users` | Register or update a user |
+| `GET` | `/api/users/{id}` | Get user info |
+| `GET` | `/api/team/patterns` | Get team working patterns |
+
+All endpoints accept `X-Developer-ID`, `X-Team-ID`, and `X-Is-Admin` headers for access control.
+
+## Configuration
+
+Settings are managed through the in-extension Settings panel. They are stored in VS Code's `globalState` (persistent across sessions). Fallback values can be set in `.vscode/settings.json`:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `devtraceai.developerId` | `string` | — | Your unique developer identifier |
+| `devtraceai.teamId` | `string` | — | Your team identifier |
+| `devtraceai.enableLogging` | `boolean` | `true` | Toggle prompt logging |
+| `devtraceai.isAdmin` | `boolean` | `false` | Enable admin mode |
+
+The backend URL (`https://extension-2n4y.onrender.com`) is hardcoded since all users share a single backend instance.
+
+## Tech Stack
+
+- **Extension**: TypeScript, VS Code Extension API, esbuild
+- **Backend**: Go, Gorilla Mux, in-memory storage with `sync.RWMutex`
+- **Deployment**: Render (free tier)
+
+## Development
+
+```bash
+# Extension - watch mode
+cd devtrace-ai
+npm run watch
+
+# Extension - type check
+npm run check-types
+
+# Extension - lint
+npm run lint
+
+# Backend - run
+cd gologchat-backend
+go run main.go
+
+# Backend - test
+go test ./...
 ```
 
-#### Get User
-```http
-GET /api/users/{id}
-```
+## Known Limitations
 
----
+- Backend uses in-memory storage — data resets on server restart
+- No authentication (team/admin IDs are trust-based)
+- Prompt logging is manual (no automatic capture from AI tools yet)
+- Render free tier has cold starts (~30s on first request after inactivity)
 
-## 🗺️ Next Steps & Roadmap
+## License
 
-### Phase 1: Core Extension Development (Current)
+MIT — see [LICENSE](devtrace-ai/LICENSE)
 
-- [x] Backend API structure
-- [x] Basic storage layer
-- [ ] **Implement prompt capture in extension**
-  - Hook into Cursor AI API
-  - Capture prompts and responses
-  - Send to backend API
-- [ ] **Create VS Code UI components**
-  - Tree view for prompt history
-  - Detail view for individual prompts
-  - Search and filter UI
-- [ ] **Extension settings**
-  - Backend API URL configuration
-  - Developer ID and Team ID setup
-  - Authentication token management
+## Contributing
 
-### Phase 2: Enhanced Features
-
-- [ ] **Database Integration**
-  - Replace in-memory storage with PostgreSQL
-  - Add database migrations
-  - Implement connection pooling
-- [ ] **Authentication & Security**
-  - JWT token authentication
-  - Secure API endpoints
-  - User session management
-- [ ] **Advanced UI**
-  - Dashboard with statistics
-  - Charts and graphs
-  - Export functionality
-- [ ] **Search & Filtering**
-  - Full-text search
-  - Advanced filters
-  - Saved searches
-
-### Phase 3: Analytics & Insights
-
-- [ ] **Analytics Dashboard**
-  - Usage statistics
-  - Trend analysis
-  - Developer activity reports
-- [ ] **Prompt Analysis**
-  - Most common prompts
-  - Effectiveness metrics
-  - Pattern recognition
-- [ ] **Integration Enhancements**
-  - Support for multiple AI tools
-  - GitHub integration
-  - Slack notifications
-
-### Phase 4: Enterprise Features
-
-- [ ] **Multi-tenant Support**
-  - Organization management
-  - Team hierarchies
-  - Resource isolation
-- [ ] **Compliance & Governance**
-  - Data retention policies
-  - Audit logging
-  - Compliance reporting
-- [ ] **Scalability**
-  - Horizontal scaling
-  - Caching layer
-  - Load balancing
-
----
-
-## 🔧 Development Guide
-
-### Extension Development
-
-1. **Watch mode for development**
-   ```bash
-   cd devtrace-ai
-   npm run watch
-   ```
-
-2. **Run tests**
-   ```bash
-   npm test
-   ```
-
-3. **Lint code**
-   ```bash
-   npm run lint
-   ```
-
-### Backend Development
-
-1. **Run with hot reload** (requires air or similar)
-   ```bash
-   air
-   ```
-
-2. **Run tests**
-   ```bash
-   go test ./...
-   ```
-
-3. **Format code**
-   ```bash
-   go fmt ./...
-   ```
-
----
-
-## 📝 Configuration
-
-### Extension Settings
-
-Add to `package.json` `contributes.configuration`:
-
-```json
-{
-  "devtraceai.apiUrl": {
-    "type": "string",
-    "default": "http://localhost:8080",
-    "description": "Backend API URL"
-  },
-  "devtraceai.developerId": {
-    "type": "string",
-    "description": "Your Developer ID"
-  },
-  "devtraceai.teamId": {
-    "type": "string",
-    "description": "Your Team ID"
-  },
-  "devtraceai.enableLogging": {
-    "type": "boolean",
-    "default": true,
-    "description": "Enable prompt logging"
-  }
-}
-```
-
-### Environment Variables
-
-**Backend:**
-- `PORT`: Server port (default: 8080)
-- `DATABASE_URL`: Database connection string (future)
-- `JWT_SECRET`: JWT secret key (future)
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Write tests
-5. Submit a pull request
-
----
-
-## 📄 License
-
-[Add your license here]
-
----
-
-## 🐛 Known Issues
-
-- In-memory storage is not persistent (data lost on restart)
-- No authentication currently implemented
-- Extension UI not yet implemented
-
----
-
-## 📚 Resources
-
-- [VS Code Extension API](https://code.visualstudio.com/api)
-- [Go Documentation](https://go.dev/doc/)
-- [Gorilla Mux](https://github.com/gorilla/mux)
-
----
-
-## 💡 Use Cases
-
-1. **Development Teams**: Track AI usage across team members
-2. **Code Reviews**: Understand context of AI-generated code
-3. **Training**: Learn effective prompt patterns
-4. **Compliance**: Maintain audit trail of AI interactions
-5. **Cost Management**: Monitor AI API usage and costs
-
----
-
-## 🎯 Success Metrics
-
-- Number of prompts logged per day
-- Team adoption rate
-- Average prompts per developer
-- Most effective prompt patterns
-- Time saved through AI assistance
-
----
-
-**Ready to get started?** Follow the setup instructions above and begin tracking your AI prompts today!
-
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
