@@ -2,7 +2,7 @@
   "name": "gologchat",
   "displayName": "GoLogChat",
   "description": "Log AI prompts and responses to a team backend for visibility.",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "SushantNadavade",
   "engines": {
     "vscode": "^1.106.1"
@@ -102,6 +102,16 @@
         "command": "gologchat.checkConnection",
         "title": "GoLogChat: Check Backend Connection",
         "icon": "$(plug)"
+      },
+      {
+        "command": "gologchat.searchPrompts",
+        "title": "GoLogChat: Search Prompts",
+        "icon": "$(search)"
+      },
+      {
+        "command": "gologchat.exportPrompts",
+        "title": "GoLogChat: Export Prompts",
+        "icon": "$(export)"
       }
     ],
     "menus": {
@@ -122,9 +132,14 @@
           "group": "navigation@3"
         },
         {
-          "command": "gologchat.refreshPrompts",
+          "command": "gologchat.searchPrompts",
           "when": "view == gologchat.promptHistory",
           "group": "navigation@4"
+        },
+        {
+          "command": "gologchat.refreshPrompts",
+          "when": "view == gologchat.promptHistory",
+          "group": "navigation@5"
         },
         {
           "command": "gologchat.refreshTeamPatterns",

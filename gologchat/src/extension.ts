@@ -159,6 +159,87 @@ export function activate(context: vscode.ExtensionContext) {
     void checkBackendHealth(client);
   });
 
+  const searchCmd = vscode.commands.registerCommand('gologchat.searchPrompts', async () => {
+    const query = await vscode.window.showInputBox({
+      title: 'GoLogChat: Search Prompts',
+      placeHolder: 'Enter search text...',
+      ignoreFocusOut: true,
+    });
+    if (!query) { return; }
+
+    try {
+      const allPrompts = await client.getPrompts();
+      const lower = query.toLowerCase();
+      const matches = allPrompts.filter(p =>
+        p.prompt.toLowerCase().includes(lower) ||
+        (p.response?.toLowerCase().includes(lower))
+      );
+
+      if (matches.length === 0) {
+        vscode.window.showInformationMessage('GoLogChat: No prompts matched your search.');
+        return;
+      }
+
+      const items = matches.map(p => ({
+        label: p.prompt.length > 80 ? p.prompt.substring(0, 80) + '...' : p.prompt,
+        description: `${p.developerId} - ${new Date(p.timestamp).toLocaleDateString()}`,
+        detail: p.response ? (p.response.length > 120 ? p.response.substring(0, 120) + '...' : p.response) : undefined,
+        prompt: p,
+      }));
+
+      const selected = await vscode.window.showQuickPick(items, {
+        title: `GoLogChat: ${matches.length} result${matches.length === 1 ? '' : 's'} for "${query}"`,
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+      if (selected) {
+        PromptDetailPanel.show(selected.prompt);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`GoLogChat: Search failed: ${msg}`);
+    }
+  });
+
+  const exportCmd = vscode.commands.registerCommand('gologchat.exportPrompts', async () => {
+    const format = await vscode.window.showQuickPick(
+      ['JSON', 'CSV'],
+      { placeHolder: 'Choose export format' }
+    );
+    if (!format) { return; }
+
+    try {
+      const prompts = await client.getPrompts();
+      if (prompts.length === 0) {
+        vscode.window.showInformationMessage('GoLogChat: No prompts to export.');
+        return;
+      }
+
+      let content: string;
+      let language: string;
+
+      if (format === 'JSON') {
+        content = JSON.stringify(prompts, null, 2);
+        language = 'json';
+      } else {
+        const header = 'id,developerId,teamId,timestamp,prompt,response';
+        const csvEscape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+        const rows = prompts.map(p =>
+          [p.id, p.developerId, p.teamId, p.timestamp, csvEscape(p.prompt), csvEscape(p.response ?? '')].join(',')
+        );
+        content = [header, ...rows].join('\n');
+        language = 'csv';
+      }
+
+      const doc = await vscode.workspace.openTextDocument({ content, language });
+      await vscode.window.showTextDocument(doc);
+      vscode.window.showInformationMessage(`GoLogChat: Exported ${prompts.length} prompts as ${format}.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`GoLogChat: Export failed: ${msg}`);
+    }
+  });
+
   const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('gologchat')) {
       const newConfig = getConfig();
@@ -181,6 +262,8 @@ export function activate(context: vscode.ExtensionContext) {
     clearFilterCmd,
     viewDetailCmd,
     checkConnectionCmd,
+    searchCmd,
+    exportCmd,
     configWatcher
   );
 }
