@@ -9,7 +9,7 @@ import { TeamPatternsDashboard } from './teamPatternsDashboard';
 function getConfig(): ExtensionConfig {
   const config = vscode.workspace.getConfiguration('gologchat');
   return {
-    apiUrl: config.get<string>('apiUrl', 'http://localhost:8080'),
+    apiUrl: config.get<string>('apiUrl', 'https://extension-2n4y.onrender.com'),
     developerId: config.get<string>('developerId'),
     teamId: config.get<string>('teamId'),
     enableLogging: config.get<boolean>('enableLogging', true),

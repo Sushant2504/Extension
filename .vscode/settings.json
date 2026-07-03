@@ -1,5 +1,5 @@
 {
-  "gologchat.apiUrl": "http://localhost:8080",
+  "gologchat.apiUrl": "https://extension-2n4y.onrender.com",
   "gologchat.developerId": "snadavad",
   "gologchat.teamId": "platform",
   "gologchat.enableLogging": true,
