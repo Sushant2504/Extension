@@ -13,8 +13,9 @@ export interface User {
   isAdmin: boolean;
 }
 
+export const API_BASE_URL = 'https://extension-2n4y.onrender.com';
+
 export const CONFIG_KEYS = {
-  apiUrl: 'gologchat.apiUrl',
   developerId: 'gologchat.developerId',
   teamId: 'gologchat.teamId',
   enableLogging: 'gologchat.enableLogging',

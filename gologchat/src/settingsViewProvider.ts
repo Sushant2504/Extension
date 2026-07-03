@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExtensionConfig, CONFIG_KEYS } from './types';
+import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL } from './types';
 
 export class SettingsViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewId = 'gologchat.settings';
@@ -45,7 +45,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     const gs = this.context.globalState;
     const vs = vscode.workspace.getConfiguration('gologchat');
     return {
-      apiUrl: gs.get<string>(CONFIG_KEYS.apiUrl) ?? vs.get<string>('apiUrl', 'https://extension-2n4y.onrender.com'),
+      apiUrl: API_BASE_URL,
       developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
       teamId: gs.get<string>(CONFIG_KEYS.teamId) ?? vs.get<string>('teamId'),
       enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
@@ -56,9 +56,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
   private async saveConfig(partial: Partial<ExtensionConfig>): Promise<void> {
     const gs = this.context.globalState;
 
-    if (partial.apiUrl !== undefined) {
-      await gs.update(CONFIG_KEYS.apiUrl, partial.apiUrl || undefined);
-    }
     if (partial.developerId !== undefined) {
       await gs.update(CONFIG_KEYS.developerId, partial.developerId || undefined);
     }
@@ -172,11 +169,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     <div class="desc">Your team identifier for access control</div>
   </div>
   <div class="field">
-    <label for="apiUrl">API URL</label>
-    <input type="text" id="apiUrl" placeholder="https://extension-2n4y.onrender.com" />
-    <div class="desc">Backend API base URL</div>
-  </div>
-  <div class="field">
     <div class="toggle-row">
       <span class="toggle-label">Enable Logging</span>
       <input type="checkbox" id="enableLogging" />
@@ -197,7 +189,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     const f = {
       developerId: document.getElementById('developerId'),
       teamId: document.getElementById('teamId'),
-      apiUrl: document.getElementById('apiUrl'),
       enableLogging: document.getElementById('enableLogging'),
       isAdmin: document.getElementById('isAdmin'),
     };
@@ -210,7 +201,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       if (msg.type === 'configLoaded') {
         f.developerId.value = msg.config.developerId || '';
         f.teamId.value = msg.config.teamId || '';
-        f.apiUrl.value = msg.config.apiUrl || '';
         f.enableLogging.checked = msg.config.enableLogging !== false;
         f.isAdmin.checked = msg.config.isAdmin === true;
       }
@@ -226,7 +216,6 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         config: {
           developerId: f.developerId.value.trim(),
           teamId: f.teamId.value.trim(),
-          apiUrl: f.apiUrl.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
         },

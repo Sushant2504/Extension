@@ -180,11 +180,6 @@
     "configuration": {
       "title": "GoLogChat",
       "properties": {
-        "gologchat.apiUrl": {
-          "type": "string",
-          "default": "https://extension-2n4y.onrender.com",
-          "description": "Backend API base URL"
-        },
         "gologchat.developerId": {
           "type": "string",
           "description": "Your Developer ID used for logging prompts"

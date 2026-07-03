@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExtensionConfig, CONFIG_KEYS, PromptFilter } from './types';
+import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL, PromptFilter } from './types';
 import { ApiClient } from './apiClient';
 import { PromptTreeProvider } from './promptTreeProvider';
 import { PromptDetailPanel } from './promptDetailPanel';
@@ -13,7 +13,7 @@ function getConfig(context: vscode.ExtensionContext): ExtensionConfig {
   const gs = context.globalState;
   const vs = vscode.workspace.getConfiguration('gologchat');
   return {
-    apiUrl: gs.get<string>(CONFIG_KEYS.apiUrl) ?? vs.get<string>('apiUrl', 'https://extension-2n4y.onrender.com'),
+    apiUrl: API_BASE_URL,
     developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
     teamId: gs.get<string>(CONFIG_KEYS.teamId) ?? vs.get<string>('teamId'),
     enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
