@@ -11,6 +11,7 @@ import (
 type Storage interface {
 	SavePrompt(prompt *models.Prompt) error
 	GetPrompts(teamID string, developerID string, isAdmin bool, startDate, endDate *time.Time) ([]models.Prompt, error)
+	GetPromptsByTeam(teamID string) ([]models.Prompt, error)
 	GetUser(developerID string) (*models.User, error)
 	SaveUser(user *models.User) error
 }
@@ -58,6 +59,16 @@ func (s *InMemoryStorage) GetPrompts(teamID string, developerID string, isAdmin 
 		results = append(results, *prompt)
 	}
 	
+	return results, nil
+}
+
+func (s *InMemoryStorage) GetPromptsByTeam(teamID string) ([]models.Prompt, error) {
+	var results []models.Prompt
+	for _, prompt := range s.prompts {
+		if prompt.TeamID == teamID {
+			results = append(results, *prompt)
+		}
+	}
 	return results, nil
 }
 

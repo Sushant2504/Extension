@@ -27,6 +27,7 @@ func main() {
 	router.HandleFunc("/api/prompts", api.GetPrompts).Methods("GET")
 	router.HandleFunc("/api/users", api.SaveUser).Methods("POST")
 	router.HandleFunc("/api/users/{id}", api.GetUser).Methods("GET")
+	router.HandleFunc("/api/team/patterns", api.GetTeamPatterns).Methods("GET")
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -26,3 +26,23 @@ export interface PromptFilter {
   startDate?: string;
   endDate?: string;
 }
+
+export interface PatternCount {
+  pattern: string;
+  count: number;
+}
+
+export interface RecentPromptSummary {
+  id: string;
+  summary: string;
+  pattern: string;
+  timestamp: string;
+}
+
+export interface DeveloperPatterns {
+  developerId: string;
+  totalPrompts: number;
+  lastActive: string;
+  patterns: PatternCount[];
+  recentPrompts: RecentPromptSummary[];
+}

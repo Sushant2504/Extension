@@ -1,4 +1,4 @@
-import { Prompt, User, PromptFilter, ExtensionConfig } from './types';
+import { Prompt, User, PromptFilter, ExtensionConfig, DeveloperPatterns } from './types';
 
 export class ApiClient {
   private baseUrl: string;
@@ -77,5 +77,14 @@ export class ApiClient {
 
   async getUser(developerId: string): Promise<User> {
     return this.request('GET', `/api/users/${encodeURIComponent(developerId)}`);
+  }
+
+  async updateUser(developerId: string, teamId: string, isAdmin: boolean): Promise<User> {
+    return this.request('POST', '/api/users', { developerId, teamId, isAdmin });
+  }
+
+  async getTeamPatterns(): Promise<DeveloperPatterns[]> {
+    const result = await this.request<DeveloperPatterns[] | null>('GET', '/api/team/patterns');
+    return result ?? [];
   }
 }

@@ -120,6 +120,37 @@ func (api *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// GET /api/team/patterns - Get team working patterns
+func (api *API) GetTeamPatterns(w http.ResponseWriter, r *http.Request) {
+	teamID := r.Header.Get("X-Team-ID")
+	isAdmin := r.Header.Get("X-Is-Admin") == "true"
+
+	developerID := r.Header.Get("X-Developer-ID")
+	if developerID != "" {
+		user, err := api.storage.GetUser(developerID)
+		if err == nil {
+			teamID = user.TeamID
+			isAdmin = user.IsAdmin
+		}
+	}
+
+	if teamID == "" && !isAdmin {
+		http.Error(w, "teamId is required", http.StatusBadRequest)
+		return
+	}
+
+	prompts, err := api.storage.GetPromptsByTeam(teamID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	results := aggregatePatterns(prompts)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
 // Health check endpoint
 func (api *API) Health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)

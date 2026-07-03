@@ -2,7 +2,7 @@
   "name": "gologchat",
   "displayName": "GoLogChat",
   "description": "Log AI prompts and responses to a team backend for visibility.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "SushantNadavade",
   "engines": {
     "vscode": "^1.106.1"
@@ -24,9 +24,11 @@
     "url": "https://github.com/your-org/gologchat/issues"
   },
   "homepage": "https://github.com/your-org/gologchat",
+  "icon": "icon.png",
   "license": "MIT",
   "activationEvents": [
-    "onView:gologchat.promptHistory"
+    "onView:gologchat.promptHistory",
+    "onView:gologchat.teamPatterns"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -45,6 +47,12 @@
           "id": "gologchat.promptHistory",
           "name": "Prompt History",
           "icon": "$(history)",
+          "contextualTitle": "GoLogChat"
+        },
+        {
+          "id": "gologchat.teamPatterns",
+          "name": "Team Patterns",
+          "icon": "$(organization)",
           "contextualTitle": "GoLogChat"
         }
       ]
@@ -74,6 +82,21 @@
         "command": "gologchat.viewPromptDetail",
         "title": "GoLogChat: View Prompt Details",
         "icon": "$(open-preview)"
+      },
+      {
+        "command": "gologchat.editDeveloper",
+        "title": "GoLogChat: Edit Developer Profile",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "gologchat.refreshTeamPatterns",
+        "title": "GoLogChat: Refresh Team Patterns",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gologchat.showTeamDashboard",
+        "title": "GoLogChat: Team Patterns Dashboard",
+        "icon": "$(graph)"
       }
     ],
     "menus": {
@@ -97,12 +120,27 @@
           "command": "gologchat.refreshPrompts",
           "when": "view == gologchat.promptHistory",
           "group": "navigation@4"
+        },
+        {
+          "command": "gologchat.refreshTeamPatterns",
+          "when": "view == gologchat.teamPatterns",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gologchat.showTeamDashboard",
+          "when": "view == gologchat.teamPatterns",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
           "command": "gologchat.viewPromptDetail",
           "when": "view == gologchat.promptHistory && viewItem == prompt",
+          "group": "inline"
+        },
+        {
+          "command": "gologchat.editDeveloper",
+          "when": "view == gologchat.teamPatterns && viewItem == developer",
           "group": "inline"
         }
       ]

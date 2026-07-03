@@ -3,6 +3,8 @@ import { ExtensionConfig, PromptFilter } from './types';
 import { ApiClient } from './apiClient';
 import { PromptTreeProvider } from './promptTreeProvider';
 import { PromptDetailPanel } from './promptDetailPanel';
+import { TeamPatternsTreeProvider } from './teamPatternsTreeProvider';
+import { TeamPatternsDashboard } from './teamPatternsDashboard';
 
 function getConfig(): ExtensionConfig {
   const config = vscode.workspace.getConfiguration('gologchat');
@@ -19,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
   const config = getConfig();
   const client = new ApiClient(config);
   const treeProvider = new PromptTreeProvider(client);
+  const teamPatternsProvider = new TeamPatternsTreeProvider(client);
 
   void autoRegister(client, config);
 
@@ -27,7 +30,13 @@ export function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true,
   });
 
+  const teamPatternsView = vscode.window.createTreeView('gologchat.teamPatterns', {
+    treeDataProvider: teamPatternsProvider,
+    showCollapseAll: true,
+  });
+
   void treeProvider.refresh();
+  void teamPatternsProvider.refresh();
 
   const logPromptCmd = vscode.commands.registerCommand('gologchat.logPrompt', async () => {
     const currentConfig = getConfig();
@@ -86,17 +95,67 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const refreshPatternsCmd = vscode.commands.registerCommand('gologchat.refreshTeamPatterns', () => {
+    void teamPatternsProvider.refresh();
+  });
+
+  const showDashboardCmd = vscode.commands.registerCommand('gologchat.showTeamDashboard', () => {
+    void TeamPatternsDashboard.show(client);
+  });
+
+  const editDeveloperCmd = vscode.commands.registerCommand('gologchat.editDeveloper', async (item: { data?: { developerId: string } }) => {
+    const developerId = item?.data?.developerId;
+    if (!developerId) { return; }
+
+    const currentUser = await (async () => {
+      try { return await client.getUser(developerId); }
+      catch { return null; }
+    })();
+
+    const newTeamId = await vscode.window.showInputBox({
+      title: `Edit Profile: ${developerId}`,
+      prompt: 'Team ID',
+      value: currentUser?.teamId ?? getConfig().teamId ?? '',
+      ignoreFocusOut: true,
+    });
+    if (newTeamId === undefined) { return; }
+
+    const adminChoice = await vscode.window.showQuickPick(
+      ['No', 'Yes'],
+      {
+        title: `Edit Profile: ${developerId}`,
+        placeHolder: `Admin access? (currently: ${currentUser?.isAdmin ? 'Yes' : 'No'})`,
+      }
+    );
+    if (adminChoice === undefined) { return; }
+
+    try {
+      await client.updateUser(developerId, newTeamId, adminChoice === 'Yes');
+      vscode.window.showInformationMessage(`GoLogChat: Updated profile for ${developerId}.`);
+      void teamPatternsProvider.refresh();
+      void treeProvider.refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`GoLogChat: Failed to update profile: ${msg}`);
+    }
+  });
+
   const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('gologchat')) {
       client.updateConfig(getConfig());
       void treeProvider.refresh();
+      void teamPatternsProvider.refresh();
     }
   });
 
   context.subscriptions.push(
     treeView,
+    teamPatternsView,
     logPromptCmd,
     refreshCmd,
+    refreshPatternsCmd,
+    showDashboardCmd,
+    editDeveloperCmd,
     filterCmd,
     clearFilterCmd,
     viewDetailCmd,

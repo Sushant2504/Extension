@@ -19,3 +19,23 @@ type User struct {
 	IsAdmin     bool   `json:"isAdmin"`
 }
 
+type PatternCount struct {
+	Pattern string `json:"pattern"`
+	Count   int    `json:"count"`
+}
+
+type RecentPromptSummary struct {
+	ID        string    `json:"id"`
+	Summary   string    `json:"summary"`
+	Pattern   string    `json:"pattern"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+type DeveloperPatterns struct {
+	DeveloperID   string                `json:"developerId"`
+	TotalPrompts  int                   `json:"totalPrompts"`
+	LastActive    time.Time             `json:"lastActive"`
+	Patterns      []PatternCount        `json:"patterns"`
+	RecentPrompts []RecentPromptSummary `json:"recentPrompts"`
+}
+

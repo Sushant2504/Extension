@@ -1,0 +1,7 @@
+{
+  "gologchat.apiUrl": "http://localhost:8080",
+  "gologchat.developerId": "snadavad",
+  "gologchat.teamId": "platform",
+  "gologchat.enableLogging": true,
+  "gologchat.isAdmin": true
+}
