@@ -1,4 +1,4 @@
-module devtrace-ai-backend
+module gologchat-backend
 
 go 1.21
 

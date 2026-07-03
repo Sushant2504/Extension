@@ -84,7 +84,7 @@ DevTrace AI/
 │   │   └── extension.ts    # Extension entry point
 │   └── package.json        # Extension manifest
 │
-└── devtrace-ai-backend/      # Go Backend Server
+└── gologchat-backend/      # Go Backend Server
     ├── main.go             # Server entry point
     ├── models/             # Data models
     │   └── models.go       # Prompt, User models
@@ -151,7 +151,7 @@ DevTrace AI/
 
 1. **Navigate to backend directory**
    ```bash
-   cd devtrace-ai-backend
+   cd gologchat-backend
    ```
 
 2. **Install dependencies**
@@ -166,8 +166,8 @@ DevTrace AI/
    
    Or build and run:
    ```bash
-   go build -o devtrace-ai-backend
-   ./devtrace-ai-backend
+   go build -o gologchat-backend
+   ./gologchat-backend
    ```
 
 4. **Configure port** (optional)

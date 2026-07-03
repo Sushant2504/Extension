@@ -20,8 +20,8 @@ go mod tidy
 go run main.go
 
 # Or build and run
-go build -o devtrace-ai-backend
-./devtrace-ai-backend
+go build -o gologchat-backend
+./gologchat-backend
 ```
 
 The server will start on port 8080 by default. Set the `PORT` environment variable to change it.

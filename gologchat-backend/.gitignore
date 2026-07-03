@@ -1,5 +1,5 @@
 # Binaries
-devtrace-ai-backend
+gologchat-backend
 *.exe
 *.exe~
 *.dll

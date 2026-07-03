@@ -8,7 +8,7 @@ Track and analyze AI prompts across your development team.
 - Respects `enableLogging` toggle.
 
 ## Requirements
-- Backend server running (default `http://localhost:8080`). Start it from `devtrace-ai-backend` with `go run main.go`.
+- Backend server running (default `http://localhost:8080`). Start it from `gologchat-backend` with `go run main.go`.
 
 ## Settings
 All settings are under `DevTrace AI`:
