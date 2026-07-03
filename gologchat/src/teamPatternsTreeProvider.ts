@@ -76,7 +76,7 @@ export class TeamPatternsTreeProvider implements vscode.TreeDataProvider<TreeEle
       this.patterns = await this.client.getTeamPatterns();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Failed to fetch team patterns: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Failed to fetch team patterns: ${msg}`);
       this.patterns = [];
     }
     this._onDidChangeTreeData.fire();

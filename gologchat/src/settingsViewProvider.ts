@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL } from './types';
 
 export class SettingsViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewId = 'gologchat.settings';
+  public static readonly viewId = 'devtraceai.settings';
 
   private _view?: vscode.WebviewView;
 
@@ -43,7 +43,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 
   private readConfig(): ExtensionConfig {
     const gs = this.context.globalState;
-    const vs = vscode.workspace.getConfiguration('gologchat');
+    const vs = vscode.workspace.getConfiguration('devtraceai');
     return {
       apiUrl: API_BASE_URL,
       developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
@@ -81,7 +81,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GoLogChat Settings</title>
+  <title>DevTrace AI Settings</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -337,9 +337,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
   <div class="header">
-    <div class="header-icon">GL</div>
+    <div class="header-icon">DT</div>
     <div class="header-text">
-      <h2>GoLogChat</h2>
+      <h2>DevTrace AI</h2>
       <span class="version">v0.1.0</span>
     </div>
   </div>

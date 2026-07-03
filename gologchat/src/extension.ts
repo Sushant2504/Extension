@@ -11,7 +11,7 @@ let statusBarItem: vscode.StatusBarItem;
 
 function getConfig(context: vscode.ExtensionContext): ExtensionConfig {
   const gs = context.globalState;
-  const vs = vscode.workspace.getConfiguration('gologchat');
+  const vs = vscode.workspace.getConfiguration('devtraceai');
   return {
     apiUrl: API_BASE_URL,
     developerId: gs.get<string>(CONFIG_KEYS.developerId) ?? vs.get<string>('developerId'),
@@ -44,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
-  statusBarItem.command = 'gologchat.checkConnection';
+  statusBarItem.command = 'devtraceai.checkConnection';
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
@@ -52,12 +52,12 @@ export function activate(context: vscode.ExtensionContext) {
   void checkBackendHealth(client);
   void autoRegister(client, config);
 
-  const treeView = vscode.window.createTreeView('gologchat.promptHistory', {
+  const treeView = vscode.window.createTreeView('devtraceai.promptHistory', {
     treeDataProvider: treeProvider,
     showCollapseAll: true,
   });
 
-  const teamPatternsView = vscode.window.createTreeView('gologchat.teamPatterns', {
+  const teamPatternsView = vscode.window.createTreeView('devtraceai.teamPatterns', {
     treeDataProvider: teamPatternsProvider,
     showCollapseAll: true,
   });
@@ -65,32 +65,32 @@ export function activate(context: vscode.ExtensionContext) {
   void treeProvider.refresh();
   void teamPatternsProvider.refresh();
 
-  const logPromptCmd = vscode.commands.registerCommand('gologchat.logPrompt', async () => {
+  const logPromptCmd = vscode.commands.registerCommand('devtraceai.logPrompt', async () => {
     const currentConfig = getConfig(context);
     if (!currentConfig.enableLogging) {
-      vscode.window.showInformationMessage('GoLogChat logging is disabled in settings.');
+      vscode.window.showInformationMessage('DevTrace AI logging is disabled in settings.');
       return;
     }
     if (!currentConfig.developerId || !currentConfig.teamId) {
       const setup = await vscode.window.showErrorMessage(
-        'GoLogChat: Please set Developer ID and Team ID in the Settings panel.',
+        'DevTrace AI: Please set Developer ID and Team ID in the Settings panel.',
         'Open Settings'
       );
       if (setup === 'Open Settings') {
-        void vscode.commands.executeCommand('gologchat.settings.focus');
+        void vscode.commands.executeCommand('devtraceai.settings.focus');
       }
       return;
     }
 
     const promptText = await vscode.window.showInputBox({
-      title: 'GoLogChat: Prompt',
+      title: 'DevTrace AI: Prompt',
       placeHolder: 'Enter the prompt you sent to the AI assistant',
       ignoreFocusOut: true,
     });
     if (!promptText) { return; }
 
     const responseText = await vscode.window.showInputBox({
-      title: 'GoLogChat: Response (optional)',
+      title: 'DevTrace AI: Response (optional)',
       placeHolder: 'Enter the AI response (optional)',
       ignoreFocusOut: true,
     });
@@ -98,29 +98,29 @@ export function activate(context: vscode.ExtensionContext) {
     try {
       client.updateConfig(currentConfig);
       await client.createPrompt(promptText, responseText || undefined);
-      vscode.window.showInformationMessage('GoLogChat: Prompt logged successfully.');
+      vscode.window.showInformationMessage('DevTrace AI: Prompt logged successfully.');
       void treeProvider.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Failed to log prompt: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Failed to log prompt: ${msg}`);
     }
   });
 
-  const refreshCmd = vscode.commands.registerCommand('gologchat.refreshPrompts', () => {
+  const refreshCmd = vscode.commands.registerCommand('devtraceai.refreshPrompts', () => {
     void treeProvider.refresh();
   });
 
-  const filterCmd = vscode.commands.registerCommand('gologchat.filterPrompts', async () => {
+  const filterCmd = vscode.commands.registerCommand('devtraceai.filterPrompts', async () => {
     await filterPromptsCommand(treeProvider);
   });
 
-  const clearFilterCmd = vscode.commands.registerCommand('gologchat.clearFilter', async () => {
+  const clearFilterCmd = vscode.commands.registerCommand('devtraceai.clearFilter', async () => {
     await treeProvider.clearFilter();
-    void vscode.commands.executeCommand('setContext', 'gologchat.filterActive', false);
+    void vscode.commands.executeCommand('setContext', 'devtraceai.filterActive', false);
   });
 
   const viewDetailCmd = vscode.commands.registerCommand(
-    'gologchat.viewPromptDetail',
+    'devtraceai.viewPromptDetail',
     (prompt) => {
       if (prompt) {
         PromptDetailPanel.show(prompt);
@@ -128,15 +128,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const refreshPatternsCmd = vscode.commands.registerCommand('gologchat.refreshTeamPatterns', () => {
+  const refreshPatternsCmd = vscode.commands.registerCommand('devtraceai.refreshTeamPatterns', () => {
     void teamPatternsProvider.refresh();
   });
 
-  const showDashboardCmd = vscode.commands.registerCommand('gologchat.showTeamDashboard', () => {
+  const showDashboardCmd = vscode.commands.registerCommand('devtraceai.showTeamDashboard', () => {
     void TeamPatternsDashboard.show(client);
   });
 
-  const editDeveloperCmd = vscode.commands.registerCommand('gologchat.editDeveloper', async (item: { data?: { developerId: string } }) => {
+  const editDeveloperCmd = vscode.commands.registerCommand('devtraceai.editDeveloper', async (item: { data?: { developerId: string } }) => {
     const developerId = item?.data?.developerId;
     if (!developerId) { return; }
 
@@ -164,26 +164,26 @@ export function activate(context: vscode.ExtensionContext) {
 
     try {
       await client.updateUser(developerId, newTeamId, adminChoice === 'Yes');
-      vscode.window.showInformationMessage(`GoLogChat: Updated profile for ${developerId}.`);
+      vscode.window.showInformationMessage(`DevTrace AI: Updated profile for ${developerId}.`);
       void teamPatternsProvider.refresh();
       void treeProvider.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Failed to update profile: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Failed to update profile: ${msg}`);
     }
   });
 
-  const checkConnectionCmd = vscode.commands.registerCommand('gologchat.checkConnection', () => {
+  const checkConnectionCmd = vscode.commands.registerCommand('devtraceai.checkConnection', () => {
     void checkBackendHealth(client);
   });
 
-  const openSettingsCmd = vscode.commands.registerCommand('gologchat.openSettings', () => {
-    void vscode.commands.executeCommand('gologchat.settings.focus');
+  const openSettingsCmd = vscode.commands.registerCommand('devtraceai.openSettings', () => {
+    void vscode.commands.executeCommand('devtraceai.settings.focus');
   });
 
-  const searchCmd = vscode.commands.registerCommand('gologchat.searchPrompts', async () => {
+  const searchCmd = vscode.commands.registerCommand('devtraceai.searchPrompts', async () => {
     const query = await vscode.window.showInputBox({
-      title: 'GoLogChat: Search Prompts',
+      title: 'DevTrace AI: Search Prompts',
       placeHolder: 'Enter search text...',
       ignoreFocusOut: true,
     });
@@ -198,7 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
       );
 
       if (matches.length === 0) {
-        vscode.window.showInformationMessage('GoLogChat: No prompts matched your search.');
+        vscode.window.showInformationMessage('DevTrace AI: No prompts matched your search.');
         return;
       }
 
@@ -210,7 +210,7 @@ export function activate(context: vscode.ExtensionContext) {
       }));
 
       const selected = await vscode.window.showQuickPick(items, {
-        title: `GoLogChat: ${matches.length} result${matches.length === 1 ? '' : 's'} for "${query}"`,
+        title: `DevTrace AI: ${matches.length} result${matches.length === 1 ? '' : 's'} for "${query}"`,
         matchOnDescription: true,
         matchOnDetail: true,
       });
@@ -219,11 +219,11 @@ export function activate(context: vscode.ExtensionContext) {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Search failed: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Search failed: ${msg}`);
     }
   });
 
-  const exportCmd = vscode.commands.registerCommand('gologchat.exportPrompts', async () => {
+  const exportCmd = vscode.commands.registerCommand('devtraceai.exportPrompts', async () => {
     const format = await vscode.window.showQuickPick(
       ['JSON', 'CSV'],
       { placeHolder: 'Choose export format' }
@@ -233,7 +233,7 @@ export function activate(context: vscode.ExtensionContext) {
     try {
       const prompts = await client.getPrompts();
       if (prompts.length === 0) {
-        vscode.window.showInformationMessage('GoLogChat: No prompts to export.');
+        vscode.window.showInformationMessage('DevTrace AI: No prompts to export.');
         return;
       }
 
@@ -255,15 +255,15 @@ export function activate(context: vscode.ExtensionContext) {
 
       const doc = await vscode.workspace.openTextDocument({ content, language });
       await vscode.window.showTextDocument(doc);
-      vscode.window.showInformationMessage(`GoLogChat: Exported ${prompts.length} prompts as ${format}.`);
+      vscode.window.showInformationMessage(`DevTrace AI: Exported ${prompts.length} prompts as ${format}.`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Export failed: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Export failed: ${msg}`);
     }
   });
 
   const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('gologchat')) {
+    if (e.affectsConfiguration('devtraceai')) {
       const newConfig = getConfig(context);
       client.updateConfig(newConfig);
       settingsProvider.refreshView();
@@ -299,14 +299,14 @@ export function deactivate() {
 }
 
 async function checkBackendHealth(client: ApiClient): Promise<void> {
-  statusBarItem.text = '$(sync~spin) GoLogChat';
+  statusBarItem.text = '$(sync~spin) DevTrace AI';
   statusBarItem.tooltip = 'Checking backend connection...';
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       await client.checkHealth();
-      statusBarItem.text = '$(check) GoLogChat';
-      statusBarItem.tooltip = 'Connected to GoLogChat backend';
+      statusBarItem.text = '$(check) DevTrace AI';
+      statusBarItem.tooltip = 'Connected to DevTrace AI backend';
       statusBarItem.backgroundColor = undefined;
       return;
     } catch {
@@ -316,8 +316,8 @@ async function checkBackendHealth(client: ApiClient): Promise<void> {
     }
   }
 
-  statusBarItem.text = '$(warning) GoLogChat';
-  statusBarItem.tooltip = 'Cannot reach GoLogChat backend — click to retry';
+  statusBarItem.text = '$(warning) DevTrace AI';
+  statusBarItem.tooltip = 'Cannot reach DevTrace AI backend — click to retry';
   statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
 }
 
@@ -326,7 +326,7 @@ async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise
   try {
     await client.registerUser();
   } catch {
-    console.warn('GoLogChat: Auto-registration failed. Backend may be unavailable.');
+    console.warn('DevTrace AI: Auto-registration failed. Backend may be unavailable.');
   }
 }
 
@@ -335,12 +335,12 @@ async function checkOnboarding(context: vscode.ExtensionContext): Promise<void> 
   if (config.developerId && config.teamId) { return; }
 
   const action = await vscode.window.showInformationMessage(
-    'GoLogChat: Set up your Developer ID and Team ID to start logging prompts.',
+    'DevTrace AI: Set up your Developer ID and Team ID to start logging prompts.',
     'Open Settings'
   );
 
   if (action === 'Open Settings') {
-    await vscode.commands.executeCommand('gologchat.settings.focus');
+    await vscode.commands.executeCommand('devtraceai.settings.focus');
   }
 }
 
@@ -391,5 +391,5 @@ async function filterPromptsCommand(treeProvider: PromptTreeProvider): Promise<v
   }
 
   await treeProvider.setFilter(filter);
-  void vscode.commands.executeCommand('setContext', 'gologchat.filterActive', treeProvider.isFilterActive);
+  void vscode.commands.executeCommand('setContext', 'devtraceai.filterActive', treeProvider.isFilterActive);
 }

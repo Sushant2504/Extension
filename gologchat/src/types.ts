@@ -16,10 +16,10 @@ export interface User {
 export const API_BASE_URL = 'https://extension-2n4y.onrender.com';
 
 export const CONFIG_KEYS = {
-  developerId: 'gologchat.developerId',
-  teamId: 'gologchat.teamId',
-  enableLogging: 'gologchat.enableLogging',
-  isAdmin: 'gologchat.isAdmin',
+  developerId: 'devtraceai.developerId',
+  teamId: 'devtraceai.teamId',
+  enableLogging: 'devtraceai.enableLogging',
+  isAdmin: 'devtraceai.isAdmin',
 } as const;
 
 export interface ExtensionConfig {

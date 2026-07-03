@@ -36,7 +36,7 @@ export class TeamPatternsDashboard {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'gologchat.teamPatternsDashboard',
+      'devtraceai.teamPatternsDashboard',
       'Team Working Patterns',
       column,
       { enableScripts: true }

@@ -21,7 +21,7 @@ export class PromptDetailPanel {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'gologchat.promptDetail',
+      'devtraceai.promptDetail',
       'Prompt Detail',
       column,
       { enableScripts: true }

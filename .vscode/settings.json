@@ -1,6 +1,6 @@
 {
-  "gologchat.developerId": "snadavad",
-  "gologchat.teamId": "platform",
-  "gologchat.enableLogging": true,
-  "gologchat.isAdmin": true
+  "devtraceai.developerId": "snadavad",
+  "devtraceai.teamId": "platform",
+  "devtraceai.enableLogging": true,
+  "devtraceai.isAdmin": true
 }

@@ -34,7 +34,7 @@ class PromptTreeItem extends vscode.TreeItem {
     );
     this.contextValue = 'prompt';
     this.command = {
-      command: 'gologchat.viewPromptDetail',
+      command: 'devtraceai.viewPromptDetail',
       title: 'View Details',
       arguments: [this.prompt],
     };
@@ -60,7 +60,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<TreeElement> 
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`GoLogChat: Failed to fetch prompts: ${msg}`);
+      vscode.window.showErrorMessage(`DevTrace AI: Failed to fetch prompts: ${msg}`);
       this.prompts = [];
     }
     this._onDidChangeTreeData.fire();

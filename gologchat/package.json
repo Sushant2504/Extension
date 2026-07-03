@@ -1,7 +1,7 @@
 {
-  "name": "gologchat",
-  "displayName": "GoLogChat",
-  "description": "Log AI prompts and responses to a team backend for visibility.",
+  "name": "devtrace-ai",
+  "displayName": "DevTrace AI",
+  "description": "Track and analyze AI prompts across your development team.",
   "version": "0.1.0",
   "publisher": "SushantNadavade",
   "engines": {
@@ -18,182 +18,182 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/gologchat.git"
+    "url": "https://github.com/your-org/devtraceai.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/gologchat/issues"
+    "url": "https://github.com/your-org/devtraceai/issues"
   },
-  "homepage": "https://github.com/your-org/gologchat",
+  "homepage": "https://github.com/your-org/devtraceai",
   "icon": "icon.png",
   "license": "MIT",
   "activationEvents": [
-    "onView:gologchat.promptHistory",
-    "onView:gologchat.teamPatterns"
+    "onView:devtraceai.promptHistory",
+    "onView:devtraceai.teamPatterns"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "gologchat-sidebar",
-          "title": "GoLogChat",
+          "id": "devtraceai-sidebar",
+          "title": "DevTrace AI",
           "icon": "$(comment-discussion)"
         }
       ]
     },
     "views": {
-      "gologchat-sidebar": [
+      "devtraceai-sidebar": [
         {
-          "id": "gologchat.promptHistory",
+          "id": "devtraceai.promptHistory",
           "name": "Prompt History",
           "icon": "$(history)",
-          "contextualTitle": "GoLogChat"
+          "contextualTitle": "DevTrace AI"
         },
         {
-          "id": "gologchat.teamPatterns",
+          "id": "devtraceai.teamPatterns",
           "name": "Team Patterns",
           "icon": "$(organization)",
-          "contextualTitle": "GoLogChat"
+          "contextualTitle": "DevTrace AI"
         },
         {
-          "id": "gologchat.settings",
+          "id": "devtraceai.settings",
           "name": "Settings",
           "type": "webview",
           "icon": "$(gear)",
-          "contextualTitle": "GoLogChat"
+          "contextualTitle": "DevTrace AI"
         }
       ]
     },
     "commands": [
       {
-        "command": "gologchat.logPrompt",
-        "title": "GoLogChat: Log Prompt",
+        "command": "devtraceai.logPrompt",
+        "title": "DevTrace AI: Log Prompt",
         "icon": "$(add)"
       },
       {
-        "command": "gologchat.refreshPrompts",
-        "title": "GoLogChat: Refresh Prompts",
+        "command": "devtraceai.refreshPrompts",
+        "title": "DevTrace AI: Refresh Prompts",
         "icon": "$(refresh)"
       },
       {
-        "command": "gologchat.filterPrompts",
-        "title": "GoLogChat: Filter Prompts",
+        "command": "devtraceai.filterPrompts",
+        "title": "DevTrace AI: Filter Prompts",
         "icon": "$(filter)"
       },
       {
-        "command": "gologchat.clearFilter",
-        "title": "GoLogChat: Clear Filter",
+        "command": "devtraceai.clearFilter",
+        "title": "DevTrace AI: Clear Filter",
         "icon": "$(clear-all)"
       },
       {
-        "command": "gologchat.viewPromptDetail",
-        "title": "GoLogChat: View Prompt Details",
+        "command": "devtraceai.viewPromptDetail",
+        "title": "DevTrace AI: View Prompt Details",
         "icon": "$(open-preview)"
       },
       {
-        "command": "gologchat.editDeveloper",
-        "title": "GoLogChat: Edit Developer Profile",
+        "command": "devtraceai.editDeveloper",
+        "title": "DevTrace AI: Edit Developer Profile",
         "icon": "$(edit)"
       },
       {
-        "command": "gologchat.refreshTeamPatterns",
-        "title": "GoLogChat: Refresh Team Patterns",
+        "command": "devtraceai.refreshTeamPatterns",
+        "title": "DevTrace AI: Refresh Team Patterns",
         "icon": "$(refresh)"
       },
       {
-        "command": "gologchat.showTeamDashboard",
-        "title": "GoLogChat: Team Patterns Dashboard",
+        "command": "devtraceai.showTeamDashboard",
+        "title": "DevTrace AI: Team Patterns Dashboard",
         "icon": "$(graph)"
       },
       {
-        "command": "gologchat.checkConnection",
-        "title": "GoLogChat: Check Backend Connection",
+        "command": "devtraceai.checkConnection",
+        "title": "DevTrace AI: Check Backend Connection",
         "icon": "$(plug)"
       },
       {
-        "command": "gologchat.searchPrompts",
-        "title": "GoLogChat: Search Prompts",
+        "command": "devtraceai.searchPrompts",
+        "title": "DevTrace AI: Search Prompts",
         "icon": "$(search)"
       },
       {
-        "command": "gologchat.exportPrompts",
-        "title": "GoLogChat: Export Prompts",
+        "command": "devtraceai.exportPrompts",
+        "title": "DevTrace AI: Export Prompts",
         "icon": "$(export)"
       },
       {
-        "command": "gologchat.openSettings",
-        "title": "GoLogChat: Open Settings",
+        "command": "devtraceai.openSettings",
+        "title": "DevTrace AI: Open Settings",
         "icon": "$(gear)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "gologchat.logPrompt",
-          "when": "view == gologchat.promptHistory",
+          "command": "devtraceai.logPrompt",
+          "when": "view == devtraceai.promptHistory",
           "group": "navigation@1"
         },
         {
-          "command": "gologchat.filterPrompts",
-          "when": "view == gologchat.promptHistory",
+          "command": "devtraceai.filterPrompts",
+          "when": "view == devtraceai.promptHistory",
           "group": "navigation@2"
         },
         {
-          "command": "gologchat.clearFilter",
-          "when": "view == gologchat.promptHistory && gologchat.filterActive",
+          "command": "devtraceai.clearFilter",
+          "when": "view == devtraceai.promptHistory && devtraceai.filterActive",
           "group": "navigation@3"
         },
         {
-          "command": "gologchat.searchPrompts",
-          "when": "view == gologchat.promptHistory",
+          "command": "devtraceai.searchPrompts",
+          "when": "view == devtraceai.promptHistory",
           "group": "navigation@4"
         },
         {
-          "command": "gologchat.refreshPrompts",
-          "when": "view == gologchat.promptHistory",
+          "command": "devtraceai.refreshPrompts",
+          "when": "view == devtraceai.promptHistory",
           "group": "navigation@5"
         },
         {
-          "command": "gologchat.refreshTeamPatterns",
-          "when": "view == gologchat.teamPatterns",
+          "command": "devtraceai.refreshTeamPatterns",
+          "when": "view == devtraceai.teamPatterns",
           "group": "navigation@1"
         },
         {
-          "command": "gologchat.showTeamDashboard",
-          "when": "view == gologchat.teamPatterns",
+          "command": "devtraceai.showTeamDashboard",
+          "when": "view == devtraceai.teamPatterns",
           "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
-          "command": "gologchat.viewPromptDetail",
-          "when": "view == gologchat.promptHistory && viewItem == prompt",
+          "command": "devtraceai.viewPromptDetail",
+          "when": "view == devtraceai.promptHistory && viewItem == prompt",
           "group": "inline"
         },
         {
-          "command": "gologchat.editDeveloper",
-          "when": "view == gologchat.teamPatterns && viewItem == developer",
+          "command": "devtraceai.editDeveloper",
+          "when": "view == devtraceai.teamPatterns && viewItem == developer",
           "group": "inline"
         }
       ]
     },
     "configuration": {
-      "title": "GoLogChat",
+      "title": "DevTrace AI",
       "properties": {
-        "gologchat.developerId": {
+        "devtraceai.developerId": {
           "type": "string",
           "description": "Your Developer ID used for logging prompts"
         },
-        "gologchat.teamId": {
+        "devtraceai.teamId": {
           "type": "string",
           "description": "Your Team ID used for access control"
         },
-        "gologchat.enableLogging": {
+        "devtraceai.enableLogging": {
           "type": "boolean",
           "default": true,
-          "description": "Enable prompt logging to GoLogChat backend"
+          "description": "Enable prompt logging to DevTrace AI backend"
         },
-        "gologchat.isAdmin": {
+        "devtraceai.isAdmin": {
           "type": "boolean",
           "default": false,
           "description": "Mark requests as admin for debugging (only set if authorized)"
