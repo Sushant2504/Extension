@@ -1,17 +1,36 @@
 import * as vscode from 'vscode';
 import { Prompt } from './types';
+import { ApiClient } from './apiClient';
 
 export class PromptDetailPanel {
   private static currentPanel: PromptDetailPanel | undefined;
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
 
-  private constructor(panel: vscode.WebviewPanel) {
+  private constructor(panel: vscode.WebviewPanel, private readonly client: ApiClient) {
     this.panel = panel;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+    this.panel.webview.onDidReceiveMessage(
+      async (message: { type: string; promptId?: string; outcome?: string }) => {
+        if (message.type === 'setOutcome' && message.promptId && message.outcome) {
+          try {
+            await this.client.updatePromptOutcome(
+              message.promptId,
+              message.outcome as 'accepted' | 'rejected' | 'edited'
+            );
+            vscode.window.showInformationMessage(`DevTrace AI: Marked as ${message.outcome}.`);
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            vscode.window.showErrorMessage(`DevTrace AI: Failed to update outcome: ${msg}`);
+          }
+        }
+      },
+      null,
+      this.disposables
+    );
   }
 
-  static show(prompt: Prompt): void {
+  static show(prompt: Prompt, client: ApiClient): void {
     const column = vscode.ViewColumn.Beside;
 
     if (PromptDetailPanel.currentPanel) {
@@ -27,7 +46,7 @@ export class PromptDetailPanel {
       { enableScripts: true }
     );
 
-    PromptDetailPanel.currentPanel = new PromptDetailPanel(panel);
+    PromptDetailPanel.currentPanel = new PromptDetailPanel(panel, client);
     PromptDetailPanel.currentPanel.update(prompt);
   }
 
@@ -201,6 +220,34 @@ export class PromptDetailPanel {
       transition: opacity 0.15s;
     }
     .id-tag:hover { opacity: 0.75; }
+    .outcome-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .outcome-btn {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid var(--vscode-widget-border, rgba(128,128,128,0.3));
+      border-radius: 4px;
+      background: transparent;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      font-family: var(--vscode-font-family);
+      font-size: 0.85em;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .outcome-btn:hover { opacity: 0.85; }
+    .outcome-btn.accepted { border-color: #4ec9b0; }
+    .outcome-btn.accepted.active { background: #4ec9b0; color: #fff; }
+    .outcome-btn.edited { border-color: #cca700; }
+    .outcome-btn.edited.active { background: #cca700; color: #fff; }
+    .outcome-btn.rejected { border-color: #f44747; }
+    .outcome-btn.rejected.active { background: #f44747; color: #fff; }
+    .outcome-pending { color: var(--vscode-descriptionForeground); }
+    .outcome-accepted { color: #4ec9b0; font-weight: 600; }
+    .outcome-rejected { color: #f44747; font-weight: 600; }
+    .outcome-edited { color: #cca700; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -219,6 +266,30 @@ export class PromptDetailPanel {
         <span class="meta-value">${esc(timestamp)}</span>
         <span class="meta-label" style="margin-top:1px">${esc(relativeTime)}</span>
       </div>
+      <div class="meta-card">
+        <span class="meta-label">Provider</span>
+        <span class="meta-value">${esc(prompt.provider || 'Not recorded')}</span>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Model</span>
+        <span class="meta-value">${esc(prompt.model || 'Not recorded')}</span>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Est. Tokens</span>
+        <span class="meta-value">${prompt.estimatedTokens ? prompt.estimatedTokens.toLocaleString() : 'N/A'}</span>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Project</span>
+        <span class="meta-value">${esc(prompt.project || 'Not recorded')}</span>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Outcome</span>
+        <span class="meta-value outcome-${prompt.outcome || 'pending'}">${esc(prompt.outcome || 'Pending')}</span>
+      </div>
+      ${prompt.language ? `<div class="meta-card">
+        <span class="meta-label">Language</span>
+        <span class="meta-value">${esc(prompt.language)}</span>
+      </div>` : ''}
       <div class="meta-card">
         <span class="meta-label">ID</span>
         <span class="id-tag" onclick="copyText('${esc(prompt.id)}', this)" title="Click to copy">${esc(prompt.id.substring(0, 8))}...</span>
@@ -250,6 +321,17 @@ export class PromptDetailPanel {
         ? `<div class="block-content response" id="response-content">${esc(prompt.response)}</div>`
         : `<div class="no-response">No response recorded</div>`}
     </div>
+
+    <div class="block">
+      <div class="block-header">
+        <span class="block-title">Rate AI Output</span>
+      </div>
+      <div class="outcome-actions">
+        <button class="outcome-btn accepted${prompt.outcome === 'accepted' ? ' active' : ''}" onclick="setOutcome('${esc(prompt.id)}', 'accepted')">Accepted</button>
+        <button class="outcome-btn edited${prompt.outcome === 'edited' ? ' active' : ''}" onclick="setOutcome('${esc(prompt.id)}', 'edited')">Edited</button>
+        <button class="outcome-btn rejected${prompt.outcome === 'rejected' ? ' active' : ''}" onclick="setOutcome('${esc(prompt.id)}', 'rejected')">Rejected</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -273,6 +355,15 @@ export class PromptDetailPanel {
         el.textContent = 'Copied!';
         setTimeout(() => { el.textContent = orig; }, 1200);
       });
+    }
+
+    const vscodeApi = acquireVsCodeApi();
+    function setOutcome(promptId, outcome) {
+      vscodeApi.postMessage({ type: 'setOutcome', promptId, outcome });
+      document.querySelectorAll('.outcome-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector('.outcome-btn.' + outcome)?.classList.add('active');
+      const outcomeValue = document.querySelector('.outcome-' + outcome) ||
+        document.querySelector('[class*="outcome-"]');
     }
   </script>
 </body>

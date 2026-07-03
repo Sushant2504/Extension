@@ -20,11 +20,12 @@ class DeveloperItem extends vscode.TreeItem {
   constructor(public readonly data: DeveloperPatterns) {
     super(data.developerId, vscode.TreeItemCollapsibleState.Collapsed);
     this.iconPath = new vscode.ThemeIcon('person');
-    this.description = `${data.totalPrompts} prompt${data.totalPrompts === 1 ? '' : 's'}`;
+    this.description = `${data.totalPrompts} prompt${data.totalPrompts === 1 ? '' : 's'}${data.topProvider ? ` · ${data.topProvider}` : ''}`;
     const lastActive = new Date(data.lastActive).toLocaleString();
     this.tooltip = new vscode.MarkdownString(
       `**Developer:** ${data.developerId}\n\n` +
       `**Total Prompts:** ${data.totalPrompts}\n\n` +
+      (data.topProvider ? `**Top Provider:** ${data.topProvider}\n\n` : '') +
       `**Last Active:** ${lastActive}`
     );
     this.contextValue = 'developer';

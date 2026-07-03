@@ -50,6 +50,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       orgId: gs.get<string>(CONFIG_KEYS.orgId) ?? vs.get<string>('orgId'),
       enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
       isAdmin: gs.get<boolean>(CONFIG_KEYS.isAdmin) ?? vs.get<boolean>('isAdmin', false),
+      defaultProvider: gs.get<string>(CONFIG_KEYS.defaultProvider) ?? vs.get<string>('defaultProvider'),
+      defaultModel: gs.get<string>(CONFIG_KEYS.defaultModel) ?? vs.get<string>('defaultModel'),
+      role: (gs.get<string>(CONFIG_KEYS.role) ?? vs.get<string>('role', 'developer')) as ExtensionConfig['role'],
     };
   }
 
@@ -67,6 +70,15 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     }
     if (partial.isAdmin !== undefined) {
       await gs.update(CONFIG_KEYS.isAdmin, partial.isAdmin);
+    }
+    if (partial.defaultProvider !== undefined) {
+      await gs.update(CONFIG_KEYS.defaultProvider, partial.defaultProvider || undefined);
+    }
+    if (partial.defaultModel !== undefined) {
+      await gs.update(CONFIG_KEYS.defaultModel, partial.defaultModel || undefined);
+    }
+    if (partial.role !== undefined) {
+      await gs.update(CONFIG_KEYS.role, partial.role || undefined);
     }
 
     const newConfig = this.readConfig();
@@ -191,6 +203,21 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     }
     input[type="text"]::placeholder {
       color: var(--vscode-input-placeholderForeground, rgba(128,128,128,0.5));
+    }
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-input-border, rgba(128,128,128,0.3));
+      border-radius: 4px;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus {
+      border-color: var(--vscode-focusBorder);
     }
     .field-hint {
       font-size: 0.78em;
@@ -387,6 +414,53 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     </div>
   </div>
 
+  <div class="section">
+    <div class="section-title">Role</div>
+    <div class="field">
+      <label class="field-label" for="role">Your Role</label>
+      <select id="role">
+        <option value="developer">Developer</option>
+        <option value="manager">Manager</option>
+        <option value="admin">Admin</option>
+      </select>
+      <div class="field-hint">Managers can create teams and view team analytics</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">AI Defaults</div>
+    <div class="field">
+      <label class="field-label" for="defaultProvider">Default Provider</label>
+      <select id="defaultProvider">
+        <option value="">None</option>
+        <option value="Cursor">Cursor</option>
+        <option value="Claude Code">Claude Code</option>
+        <option value="GitHub Copilot">GitHub Copilot</option>
+        <option value="Aider">Aider</option>
+        <option value="Continue">Continue</option>
+        <option value="Other">Other</option>
+      </select>
+      <div class="field-hint">Pre-selected provider when logging prompts</div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="defaultModel">Default Model</label>
+      <select id="defaultModel">
+        <option value="">None</option>
+        <option value="GPT-4o">GPT-4o</option>
+        <option value="GPT-4">GPT-4</option>
+        <option value="GPT-4o mini">GPT-4o mini</option>
+        <option value="Claude Sonnet">Claude Sonnet</option>
+        <option value="Claude Opus">Claude Opus</option>
+        <option value="Claude Haiku">Claude Haiku</option>
+        <option value="Gemini Pro">Gemini Pro</option>
+        <option value="Gemini Flash">Gemini Flash</option>
+        <option value="Codex">Codex</option>
+        <option value="Other">Other</option>
+      </select>
+      <div class="field-hint">Pre-selected model when logging prompts</div>
+    </div>
+  </div>
+
   <div class="actions">
     <button class="save-btn" id="saveBtn">
       <span id="saveBtnText">Save Settings</span>
@@ -406,6 +480,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       orgId: document.getElementById('orgId'),
       enableLogging: document.getElementById('enableLogging'),
       isAdmin: document.getElementById('isAdmin'),
+      defaultProvider: document.getElementById('defaultProvider'),
+      defaultModel: document.getElementById('defaultModel'),
+      role: document.getElementById('role'),
     };
     const saveBtn = document.getElementById('saveBtn');
     const saveBtnText = document.getElementById('saveBtnText');
@@ -424,6 +501,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         orgId: f.orgId.value.trim(),
         enableLogging: f.enableLogging.checked,
         isAdmin: f.isAdmin.checked,
+        defaultProvider: f.defaultProvider.value,
+        defaultModel: f.defaultModel.value,
+        role: f.role.value,
       };
       const dirty = JSON.stringify(current) !== JSON.stringify(originalValues);
       dirtyDot.classList.toggle('visible', dirty);
@@ -433,6 +513,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     f.orgId.addEventListener('input', checkDirty);
     f.enableLogging.addEventListener('change', checkDirty);
     f.isAdmin.addEventListener('change', checkDirty);
+    f.defaultProvider.addEventListener('change', checkDirty);
+    f.defaultModel.addEventListener('change', checkDirty);
+    f.role.addEventListener('change', checkDirty);
 
     window.addEventListener('message', (event) => {
       const msg = event.data;
@@ -441,12 +524,18 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         f.orgId.value = msg.config.orgId || '';
         f.enableLogging.checked = msg.config.enableLogging !== false;
         f.isAdmin.checked = msg.config.isAdmin === true;
+        f.defaultProvider.value = msg.config.defaultProvider || '';
+        f.defaultModel.value = msg.config.defaultModel || '';
+        f.role.value = msg.config.role || 'developer';
 
         originalValues = {
           developerId: f.developerId.value.trim(),
           orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
+          defaultProvider: f.defaultProvider.value,
+          defaultModel: f.defaultModel.value,
+          role: f.role.value,
         };
         dirtyDot.classList.remove('visible');
 
@@ -464,6 +553,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
+          defaultProvider: f.defaultProvider.value,
+          defaultModel: f.defaultModel.value,
+          role: f.role.value,
         };
         dirtyDot.classList.remove('visible');
 
@@ -485,6 +577,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           orgId: f.orgId.value.trim(),
           enableLogging: f.enableLogging.checked,
           isAdmin: f.isAdmin.checked,
+          defaultProvider: f.defaultProvider.value || undefined,
+          defaultModel: f.defaultModel.value || undefined,
+          role: f.role.value || undefined,
         },
       });
     });

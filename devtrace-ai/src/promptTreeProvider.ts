@@ -25,11 +25,14 @@ class PromptTreeItem extends vscode.TreeItem {
       prompt.response ? 'comment-discussion' : 'comment'
     );
     const time = new Date(prompt.timestamp).toLocaleTimeString();
-    this.description = `${prompt.developerId} at ${time}`;
+    const providerTag = prompt.provider ? ` [${prompt.provider}]` : '';
+    this.description = `${prompt.developerId} at ${time}${providerTag}`;
     this.tooltip = new vscode.MarkdownString(
       `**Prompt:** ${prompt.prompt}\n\n` +
       (prompt.response ? `**Response:** ${prompt.response}\n\n` : '') +
       `**Developer:** ${prompt.developerId}\n\n` +
+      (prompt.provider ? `**Provider:** ${prompt.provider}\n\n` : '') +
+      (prompt.model ? `**Model:** ${prompt.model}\n\n` : '') +
       `**Time:** ${new Date(prompt.timestamp).toLocaleString()}`
     );
     this.contextValue = 'prompt';

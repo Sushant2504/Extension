@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL, PromptFilter } from './types';
+import { ExtensionConfig, CONFIG_KEYS, API_BASE_URL, PromptFilter, PROVIDERS, MODELS } from './types';
 import { ApiClient } from './apiClient';
 import { PromptTreeProvider } from './promptTreeProvider';
 import { PromptDetailPanel } from './promptDetailPanel';
@@ -18,6 +18,9 @@ function getConfig(context: vscode.ExtensionContext): ExtensionConfig {
     orgId: gs.get<string>(CONFIG_KEYS.orgId) ?? vs.get<string>('orgId'),
     enableLogging: gs.get<boolean>(CONFIG_KEYS.enableLogging) ?? vs.get<boolean>('enableLogging', true),
     isAdmin: gs.get<boolean>(CONFIG_KEYS.isAdmin) ?? vs.get<boolean>('isAdmin', false),
+    defaultProvider: gs.get<string>(CONFIG_KEYS.defaultProvider) ?? vs.get<string>('defaultProvider'),
+    defaultModel: gs.get<string>(CONFIG_KEYS.defaultModel) ?? vs.get<string>('defaultModel'),
+    role: (gs.get<string>(CONFIG_KEYS.role) ?? vs.get<string>('role')) as ExtensionConfig['role'],
   };
 }
 
@@ -95,10 +98,75 @@ export function activate(context: vscode.ExtensionContext) {
       ignoreFocusOut: true,
     });
 
+    const defaultProvider = currentConfig.defaultProvider
+      || context.globalState.get<string>('devtraceai.lastProvider');
+    const providerItems = PROVIDERS.map(p => ({
+      label: p,
+      description: p === defaultProvider ? '(default)' : undefined,
+    }));
+    if (defaultProvider) {
+      const idx = providerItems.findIndex(i => i.label === defaultProvider);
+      if (idx > 0) {
+        const [item] = providerItems.splice(idx, 1);
+        providerItems.unshift(item);
+      }
+    }
+    const selectedProvider = await vscode.window.showQuickPick(providerItems, {
+      title: 'DevTrace AI: AI Provider',
+      placeHolder: 'Which AI tool generated this?',
+    });
+    if (!selectedProvider) { return; }
+
+    const defaultModel = currentConfig.defaultModel
+      || context.globalState.get<string>('devtraceai.lastModel');
+    const modelItems = MODELS.map(m => ({
+      label: m,
+      description: m === defaultModel ? '(default)' : undefined,
+    }));
+    if (defaultModel) {
+      const idx = modelItems.findIndex(i => i.label === defaultModel);
+      if (idx > 0) {
+        const [item] = modelItems.splice(idx, 1);
+        modelItems.unshift(item);
+      }
+    }
+    const selectedModel = await vscode.window.showQuickPick(modelItems, {
+      title: 'DevTrace AI: AI Model',
+      placeHolder: 'Which model was used?',
+    });
+    if (!selectedModel) { return; }
+
+    const activeEditor = vscode.window.activeTextEditor;
+    const language = activeEditor?.document.languageId || undefined;
+    const fileContext = activeEditor?.document.fileName
+      ? activeEditor.document.fileName.split(/[\\/]/).pop()
+      : undefined;
+    const project = vscode.workspace.workspaceFolders?.[0]?.name;
+
     try {
       client.updateConfig(currentConfig);
-      await client.createPrompt(promptText, responseText || undefined);
+      const savedPrompt = await client.createPrompt(
+        promptText,
+        responseText || undefined,
+        selectedProvider.label,
+        selectedModel.label,
+        language,
+        fileContext,
+        project,
+      );
+      void context.globalState.update('devtraceai.lastProvider', selectedProvider.label);
+      void context.globalState.update('devtraceai.lastModel', selectedModel.label);
       vscode.window.showInformationMessage('DevTrace AI: Prompt logged successfully.');
+      const feedbackChoice = await vscode.window.showInformationMessage(
+        'How did this AI suggestion work out?',
+        'Accepted', 'Rejected', 'Edited'
+      );
+      if (feedbackChoice) {
+        await client.updatePromptOutcome(
+          savedPrompt.id,
+          feedbackChoice.toLowerCase() as 'accepted' | 'rejected' | 'edited'
+        );
+      }
       void treeProvider.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -123,7 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
     'devtraceai.viewPromptDetail',
     (prompt) => {
       if (prompt) {
-        PromptDetailPanel.show(prompt);
+        PromptDetailPanel.show(prompt, client);
       }
     }
   );
@@ -215,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
         matchOnDetail: true,
       });
       if (selected) {
-        PromptDetailPanel.show(selected.prompt);
+        PromptDetailPanel.show(selected.prompt, client);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -244,10 +312,10 @@ export function activate(context: vscode.ExtensionContext) {
         content = JSON.stringify(prompts, null, 2);
         language = 'json';
       } else {
-        const header = 'id,developerId,orgId,timestamp,prompt,response';
+        const header = 'id,developerId,orgId,provider,model,language,estimatedTokens,project,outcome,timestamp,prompt,response';
         const csvEscape = (s: string) => `"${s.replace(/"/g, '""')}"`;
         const rows = prompts.map(p =>
-          [p.id, p.developerId, p.orgId, p.timestamp, csvEscape(p.prompt), csvEscape(p.response ?? '')].join(',')
+          [p.id, p.developerId, p.orgId, csvEscape(p.provider ?? ''), csvEscape(p.model ?? ''), csvEscape(p.language ?? ''), p.estimatedTokens ?? 0, csvEscape(p.project ?? ''), csvEscape(p.outcome ?? ''), p.timestamp, csvEscape(p.prompt), csvEscape(p.response ?? '')].join(',')
         );
         content = [header, ...rows].join('\n');
         language = 'csv';
@@ -259,6 +327,96 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       vscode.window.showErrorMessage(`DevTrace AI: Export failed: ${msg}`);
+    }
+  });
+
+  const quickCaptureCmd = vscode.commands.registerCommand('devtraceai.quickCapture', async () => {
+    const currentConfig = getConfig(context);
+    if (!currentConfig.developerId || !currentConfig.orgId) {
+      vscode.window.showErrorMessage('DevTrace AI: Please set Developer ID and Organization ID first.');
+      return;
+    }
+
+    const clipboardText = await vscode.env.clipboard.readText();
+    if (!clipboardText || clipboardText.trim().length < 20) {
+      vscode.window.showInformationMessage('DevTrace AI: Clipboard content too short to capture.');
+      return;
+    }
+
+    const appName = vscode.env.appName;
+    let detectedProvider = 'Other';
+    if (appName.includes('Cursor')) { detectedProvider = 'Cursor'; }
+    else if (appName.includes('Visual Studio Code')) { detectedProvider = 'GitHub Copilot'; }
+    else if (appName.includes('Windsurf')) { detectedProvider = 'Continue'; }
+
+    const project = vscode.workspace.workspaceFolders?.[0]?.name;
+    const activeEditor = vscode.window.activeTextEditor;
+    const language = activeEditor?.document.languageId || undefined;
+    const fileContext = activeEditor?.document.fileName
+      ? activeEditor.document.fileName.split(/[\\/]/).pop()
+      : undefined;
+
+    const outcomeChoice = await vscode.window.showQuickPick(
+      [
+        { label: 'Accepted', description: 'AI output was used as-is' },
+        { label: 'Edited', description: 'AI output was modified before use' },
+        { label: 'Rejected', description: 'AI output was discarded' },
+        { label: 'Skip', description: 'Log without rating' },
+      ],
+      {
+        title: `DevTrace AI: Quick Capture (${detectedProvider})`,
+        placeHolder: 'How useful was this AI output?',
+      }
+    );
+    if (!outcomeChoice) { return; }
+
+    try {
+      client.updateConfig(currentConfig);
+      const savedPrompt = await client.createPrompt(
+        clipboardText,
+        undefined,
+        detectedProvider,
+        currentConfig.defaultModel || context.globalState.get<string>('devtraceai.lastModel') || 'Other',
+        language,
+        fileContext,
+        project,
+      );
+      if (outcomeChoice.label !== 'Skip') {
+        await client.updatePromptOutcome(
+          savedPrompt.id,
+          outcomeChoice.label.toLowerCase() as 'accepted' | 'rejected' | 'edited'
+        );
+      }
+      vscode.window.showInformationMessage(`DevTrace AI: Captured from clipboard (${detectedProvider}).`);
+      void treeProvider.refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`DevTrace AI: Quick capture failed: ${msg}`);
+    }
+  });
+
+  const manageTeamsCmd = vscode.commands.registerCommand('devtraceai.manageTeams', async () => {
+    const { TeamManagementPanel } = await import('./teamManagementPanel.js');
+    TeamManagementPanel.show(client);
+  });
+
+  const showTeamDashboardCmd = vscode.commands.registerCommand('devtraceai.showTeamDashboard', async () => {
+    const teams = await client.listTeams();
+    if (teams.length === 0) {
+      vscode.window.showInformationMessage('DevTrace AI: No teams found. Create a team first.');
+      return;
+    }
+    const items = teams.map(t => ({
+      label: t.name,
+      description: `${t.members.length} member${t.members.length === 1 ? '' : 's'}`,
+      teamId: t.id,
+    }));
+    const selected = await vscode.window.showQuickPick(items, {
+      title: 'DevTrace AI: Select Team',
+      placeHolder: 'Which team\'s dashboard?',
+    });
+    if (selected) {
+      void OrgPatternsDashboard.show(client, selected.teamId);
     }
   });
 
@@ -290,6 +448,9 @@ export function activate(context: vscode.ExtensionContext) {
     openSettingsCmd,
     searchCmd,
     exportCmd,
+    quickCaptureCmd,
+    manageTeamsCmd,
+    showTeamDashboardCmd,
     configWatcher
   );
 }
