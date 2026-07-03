@@ -6,6 +6,8 @@ import { PromptDetailPanel } from './promptDetailPanel';
 import { TeamPatternsTreeProvider } from './teamPatternsTreeProvider';
 import { TeamPatternsDashboard } from './teamPatternsDashboard';
 
+let statusBarItem: vscode.StatusBarItem;
+
 function getConfig(): ExtensionConfig {
   const config = vscode.workspace.getConfiguration('gologchat');
   return {
@@ -23,6 +25,13 @@ export function activate(context: vscode.ExtensionContext) {
   const treeProvider = new PromptTreeProvider(client);
   const teamPatternsProvider = new TeamPatternsTreeProvider(client);
 
+  statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
+  statusBarItem.command = 'gologchat.checkConnection';
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+
+  void checkOnboarding(config);
+  void checkBackendHealth(client);
   void autoRegister(client, config);
 
   const treeView = vscode.window.createTreeView('gologchat.promptHistory', {
@@ -45,7 +54,13 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
     if (!currentConfig.developerId || !currentConfig.teamId) {
-      vscode.window.showErrorMessage('GoLogChat: Please set developerId and teamId in settings.');
+      const setup = await vscode.window.showErrorMessage(
+        'GoLogChat: Please set developerId and teamId in settings.',
+        'Open Settings'
+      );
+      if (setup === 'Open Settings') {
+        void vscode.commands.executeCommand('workbench.action.openSettings', 'gologchat');
+      }
       return;
     }
 
@@ -140,11 +155,17 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const checkConnectionCmd = vscode.commands.registerCommand('gologchat.checkConnection', () => {
+    void checkBackendHealth(client);
+  });
+
   const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('gologchat')) {
-      client.updateConfig(getConfig());
+      const newConfig = getConfig();
+      client.updateConfig(newConfig);
       void treeProvider.refresh();
       void teamPatternsProvider.refresh();
+      void checkBackendHealth(client);
     }
   });
 
@@ -159,11 +180,37 @@ export function activate(context: vscode.ExtensionContext) {
     filterCmd,
     clearFilterCmd,
     viewDetailCmd,
+    checkConnectionCmd,
     configWatcher
   );
 }
 
-export function deactivate() {}
+export function deactivate() {
+  statusBarItem?.dispose();
+}
+
+async function checkBackendHealth(client: ApiClient): Promise<void> {
+  statusBarItem.text = '$(sync~spin) GoLogChat';
+  statusBarItem.tooltip = 'Checking backend connection...';
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await client.checkHealth();
+      statusBarItem.text = '$(check) GoLogChat';
+      statusBarItem.tooltip = 'Connected to GoLogChat backend';
+      statusBarItem.backgroundColor = undefined;
+      return;
+    } catch {
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+  }
+
+  statusBarItem.text = '$(warning) GoLogChat';
+  statusBarItem.tooltip = 'Cannot reach GoLogChat backend — click to retry';
+  statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+}
 
 async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise<void> {
   if (!config.developerId || !config.teamId) { return; }
@@ -172,6 +219,39 @@ async function autoRegister(client: ApiClient, config: ExtensionConfig): Promise
   } catch {
     console.warn('GoLogChat: Auto-registration failed. Backend may be unavailable.');
   }
+}
+
+async function checkOnboarding(config: ExtensionConfig): Promise<void> {
+  if (config.developerId && config.teamId) { return; }
+
+  const action = await vscode.window.showInformationMessage(
+    'GoLogChat: Set up your Developer ID and Team ID to start logging prompts.',
+    'Configure Now',
+    'Later'
+  );
+
+  if (action !== 'Configure Now') { return; }
+
+  const developerId = await vscode.window.showInputBox({
+    title: 'GoLogChat Setup',
+    prompt: 'Enter your Developer ID (e.g., your username)',
+    placeHolder: 'john-doe',
+    ignoreFocusOut: true,
+  });
+  if (!developerId) { return; }
+
+  const teamId = await vscode.window.showInputBox({
+    title: 'GoLogChat Setup',
+    prompt: 'Enter your Team ID',
+    placeHolder: 'platform',
+    ignoreFocusOut: true,
+  });
+  if (!teamId) { return; }
+
+  const wsConfig = vscode.workspace.getConfiguration('gologchat');
+  await wsConfig.update('developerId', developerId, vscode.ConfigurationTarget.Global);
+  await wsConfig.update('teamId', teamId, vscode.ConfigurationTarget.Global);
+  vscode.window.showInformationMessage(`GoLogChat: Welcome, ${developerId}! You're all set.`);
 }
 
 async function filterPromptsCommand(treeProvider: PromptTreeProvider): Promise<void> {

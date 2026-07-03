@@ -97,6 +97,11 @@
         "command": "gologchat.showTeamDashboard",
         "title": "GoLogChat: Team Patterns Dashboard",
         "icon": "$(graph)"
+      },
+      {
+        "command": "gologchat.checkConnection",
+        "title": "GoLogChat: Check Backend Connection",
+        "icon": "$(plug)"
       }
     ],
     "menus": {
